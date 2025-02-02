@@ -36,7 +36,7 @@ export function Navbar() {
         <nav className=" py-3 max-w-6xl mx-auto flex items-center justify-around">
           {/* Logo */}
           <Link to="/" className="text-2xl font-bold text-white">
-            CoffeeTime
+            AnimeTracker
           </Link>
 
           {/* Search Input */}
