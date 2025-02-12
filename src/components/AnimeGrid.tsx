@@ -1,3 +1,4 @@
+// src/components/AnimeGrid.tsx
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { AnimeCard } from './AnimeCard';

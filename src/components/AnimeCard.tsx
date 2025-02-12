@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import React from 'react';
 import { Heart, ListPlus, CheckCircle } from 'lucide-react';
 import { useAnimeStore, type Anime } from '../lib/store';
 import { cn } from '../lib/utils';
-import { AnimeDetails } from './AnimeDetails';
-import React from 'react';
+import { Link } from 'react-router-dom'; 
 
 interface AnimeCardProps {
   anime: Anime;
@@ -11,7 +10,6 @@ interface AnimeCardProps {
 }
 
 export function AnimeCard({ anime, className }: AnimeCardProps) {
-  const [showDetails, setShowDetails] = useState(false);
   const { favorites, watchlist, watched, addToFavorites, removeFromFavorites, addToWatchlist, addToWatched } = useAnimeStore();
 
   const isFavorite = favorites.some((a) => a.mal_id === anime.mal_id);
@@ -19,10 +17,9 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
   const isWatched = watched.some((a) => a.mal_id === anime.mal_id);
 
   return (
-    <>
+    <Link to={`/anime/${anime.mal_id}`} className="group block"> {/* Wrap the entire card in a Link, use block display */}
       <div
-        className={cn("relative group overflow-hidden rounded-lg cursor-pointer", className)}
-        onClick={() => setShowDetails(true)}
+        className={cn("relative overflow-hidden rounded-lg cursor-pointer", className)}
       >
         <img
           src={anime.images.webp.image_url}
@@ -33,6 +30,7 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
           <div className="flex justify-end gap-2">
             <button
               onClick={(e) => {
+                e.preventDefault(); 
                 e.stopPropagation();
                 isFavorite ? removeFromFavorites(anime.mal_id) : addToFavorites(anime);
               }}
@@ -43,6 +41,7 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
             {!isWatched && (
               <button
                 onClick={(e) => {
+                  e.preventDefault(); 
                   e.stopPropagation();
                   addToWatchlist(anime);
                 }}
@@ -54,6 +53,7 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
             {isWatchlisted && (
               <button
                 onClick={(e) => {
+                  e.preventDefault(); 
                   e.stopPropagation();
                   addToWatched(anime);
                 }}
@@ -72,13 +72,6 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
           </div>
         </div>
       </div>
-
-      {showDetails && (
-        <AnimeDetails
-          animeId={anime.mal_id}
-          onClose={() => setShowDetails(false)}
-        />
-      )}
-    </>
+    </Link>
   );
 }
