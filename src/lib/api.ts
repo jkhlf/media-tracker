@@ -4,8 +4,8 @@ import axiosRetry from 'axios-retry';
 // --- Rate Limiting ---
 let requestQueue: (() => void)[] = [];
 let isProcessingQueue = false;
-const MAX_REQUESTS_PER_MINUTE = 60; // Jikan API documentation suggests around 60 requests per minute, but check the official docs.
-const TIME_WINDOW_MS = 60000; // 1 minute in milliseconds
+const MAX_REQUESTS_PER_MINUTE = 60; 
+const TIME_WINDOW_MS = 60000; 
 let requestCount = 0;
 let resetTime = Date.now() + TIME_WINDOW_MS;
 
@@ -45,12 +45,12 @@ const enqueueRequest = (requestFn: () => Promise<any>): Promise<any> => {
         reject(error);
       } finally {
         if (!isProcessingQueue) {
-          processQueue(); // Start processing if queue is not already being processed
+          processQueue(); 
         }
       }
     });
     if (!isProcessingQueue) {
-      processQueue(); // Start processing if queue is not already being processed
+      processQueue(); 
     }
   });
 };
@@ -170,6 +170,10 @@ export const getSchedules = async () => {
 
 export const getAnimeRecommendations = async () => {
   return fetchData('/recommendations/anime');
+};
+
+export const getAnimeRecommendationsForDetails = async (id: number) => { 
+  return fetchData(`/anime/${id}/recommendations`);
 };
 
 export const getAnimeDetails = async (id: number) => {

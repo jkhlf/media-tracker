@@ -6,6 +6,7 @@ import { Loader } from 'lucide-react';
 import React from 'react';
 
 export function Home() {
+
   const { data: topAnime, isLoading: topLoading } = useQuery({
     queryKey: ['topAnime'],
     queryFn: () => getTopAnime(),
@@ -30,7 +31,7 @@ export function Home() {
   }
 
   return (
-    <div className="space-y-10 pt-8 px-4 max-w-6xl mx-auto sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+    <div className="space-y-10 pt-8 px-4 max-w-6xl mx-auto sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 relative">
       {/* Chart da Temporada Atual */}
       {seasonNow && (
         <div>
@@ -43,12 +44,10 @@ export function Home() {
         <div>
           <h2 className="text-xl sm:text-2xl font-bold mb-4 text-left mx-3">Top Anime</h2>
           <AnimeGrid
-            items={topAnime.data.slice(0, 10)} // Reduzi o número de itens exibidos
+            items={topAnime.data.slice(0, 10)}
           />
         </div>
       )}
-
-
 
       {/* Recomendações */}
       {recommendations && (
@@ -56,7 +55,7 @@ export function Home() {
           <h2 className="text-xl sm:text-2xl font-bold mb-4 text-left mx-3">Recommended for You</h2>
           <AnimeGrid
             items={recommendations.data
-              .slice(0, 10) // Reduzi o número de itens exibidos
+              .slice(0, 10)
               .map((rec: any) => rec.entry[0])}
           />
         </div>
