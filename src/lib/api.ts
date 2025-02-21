@@ -179,3 +179,4 @@ export const getAnimeRecommendationsForDetails = async (id: number) => {
 export const getAnimeDetails = async (id: number) => {
   return fetchData(`/anime/${id}/full`);
 };
+

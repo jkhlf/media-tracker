@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { getAnimeDetails, getAnimeRecommendationsForDetails } from '../lib/api';
 import { useAnimeStore } from '../lib/store';
 import { AnimeStats } from '../components/AnimeStats';
-import { useParams, Link } from 'react-router-dom'; 
+import { useParams, Link } from 'react-router-dom';
 
 interface UserAnimeData {
   episode?: number;
@@ -63,9 +63,8 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`pb-4 relative flex items-center gap-2 ${
-        active ? 'text-white' : 'text-gray-400 hover:text-gray-300'
-      }`}
+      className={`pb-4 relative flex items-center gap-2 ${active ? 'text-white' : 'text-gray-400 hover:text-gray-300'
+        }`}
     >
       {icon}
       {children}
@@ -148,7 +147,7 @@ export function AnimeDetailsPage() { // Renamed to AnimeDetailsPage and removed 
     error: relatedAnimeError,
   } = useQuery({
     queryKey: ['animeRecommendations', animeId],
-    queryFn: () => getAnimeRecommendationsForDetails (animeId as number), // Type assertion as animeId is checked
+    queryFn: () => getAnimeRecommendationsForDetails(animeId as number), // Type assertion as animeId is checked
     enabled: selectedTab === 'related' && animeId !== null, // Conditionally enable query
   });
 
@@ -274,6 +273,11 @@ export function AnimeDetailsPage() { // Renamed to AnimeDetailsPage and removed 
                 </TabButton>
               </div>
             </div>
+
+            {/* Gallery */}
+            
+
+
 
             {/* Tab Content */}
             <motion.div

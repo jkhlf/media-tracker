@@ -27,13 +27,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/watchlist" className="hover:text-white transition-colors">
-                  Watchlist
-                </Link>
-              </li>
-              <li>
-                <Link to="/favorites" className="hover:text-white transition-colors">
-                  Favorites
+                <Link to="/library" className="hover:text-white transition-colors">
+                  Library
                 </Link>
               </li>
               <li>
