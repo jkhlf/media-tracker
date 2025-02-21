@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ExternalLink, Info, Play, Star, StarOff, Shuffle } from 'lucide-react';
+import { X, ExternalLink, Info, Play, Star, StarOff, Shuffle, LucideArrowDownLeftFromCircle, ArrowLeftCircle, ArrowLeftCircleIcon, ArrowLeftFromLine } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { getAnimeDetails, getAnimeRecommendationsForDetails } from '../lib/api';
@@ -79,7 +79,7 @@ function TabButton({
 }
 
 
-export function AnimeDetailsPage() { // Renamed to AnimeDetailsPage and removed props
+export function AnimeDetailsPage() { 
   const { animeId: animeIdParam } = useParams(); // Get animeId from URL params
   const animeId = animeIdParam ? parseInt(animeIdParam, 10) : null; // Parse animeId to number
 
@@ -200,16 +200,16 @@ export function AnimeDetailsPage() { // Renamed to AnimeDetailsPage and removed 
             <img
               src={anime.images.webp.large_image_url || anime.images.webp.image_url}
               alt={anime.title}
-              className="w-full h-[55vh] object-cover" // Changed object-contain to object-cover for hero
+              className="w-full h-full object-contain" // Changed object-contain to object-cover for hero
             />
             <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50" />
             <Link to="/" className="absolute top-4 right-4 p-2 bg-gray-900/50 rounded-full hover:bg-gray-900/75 transition-colors">
-              <X className="w-6 h-6" />
+            <ArrowLeftFromLine className="w-6 h-6 flex hover:text-gray-400 transition-colors" /> 
             </Link>
           </motion.div>
 
           {/* Content */}
-          <div className="max-w-5xl mx-auto px-4 md:px-8 -mt-32 relative space-y-8">
+          <div className="max-w-6xl mx-auto px-4 md:px-8 -mt-32 relative space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -273,11 +273,6 @@ export function AnimeDetailsPage() { // Renamed to AnimeDetailsPage and removed 
                 </TabButton>
               </div>
             </div>
-
-            {/* Gallery */}
-            
-
-
 
             {/* Tab Content */}
             <motion.div

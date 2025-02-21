@@ -31,11 +31,11 @@ export function Home() {
   }
 
   return (
-    <div className="space-y-10 pt-8 px-4 max-w-6xl mx-auto sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 relative">
+    <div className="space-y-10 pt-8 px-4 max-w-7xl mx-auto sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 relative">
       {/* Chart da Temporada Atual */}
       {seasonNow && (
         <div>
-          <SeasonalChart items={seasonNow.data.slice(0, 10)} />
+          <SeasonalChart items={seasonNow.data.slice(0, 12)} />
         </div>
       )}
 
@@ -44,7 +44,7 @@ export function Home() {
         <div>
           <h2 className="text-xl sm:text-2xl font-bold mb-4 text-left mx-3">Top Anime</h2>
           <AnimeGrid
-            items={topAnime.data.slice(0, 10)}
+            items={topAnime.data.slice(0, 12)}
           />
         </div>
       )}

@@ -25,7 +25,7 @@ export function AnimeCard({ anime, className, onRemove }: AnimeCardProps) {
         <img
           src={anime.images.webp.image_url}
           alt={anime.title}
-          className="w-full h-[300px] object-cover transition-transform group-hover:scale-110"
+          className="w-full h-auto object-cover transition-transform group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
           <div className="flex justify-end gap-2">
@@ -77,7 +77,7 @@ export function AnimeCard({ anime, className, onRemove }: AnimeCardProps) {
             )}
           </div>
           <div>
-            <h3 className="text-white font-semibold text-lg">{anime.title}</h3>
+            <h3 className="text-white font-semibold text-base">{anime.title}</h3>
             <div className="flex items-center gap-2 text-sm text-white/80">
               <span>Score: {anime.score}</span>
               {anime.year && <span>• {anime.year}</span>}
