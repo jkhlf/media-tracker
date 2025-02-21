@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, ListPlus, CheckCircle } from 'lucide-react';
+import { Heart, ListPlus, CheckCircle, X } from 'lucide-react';
 import { useAnimeStore, type Anime } from '../lib/store';
 import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom'; 
@@ -7,10 +7,11 @@ import { Link } from 'react-router-dom';
 interface AnimeCardProps {
   anime: Anime;
   className?: string;
+  onRemove?: () => void;
 }
 
-export function AnimeCard({ anime, className }: AnimeCardProps) {
-  const { favorites, watchlist, watched, addToFavorites, removeFromFavorites, addToWatchlist, addToWatched } = useAnimeStore();
+export function AnimeCard({ anime, className, onRemove }: AnimeCardProps) {
+  const { favorites, watchlist, watched, addToFavorites, removeFromFavorites, addToWatchlist, addToWatched, removeFromWatchlist } = useAnimeStore();
 
   const isFavorite = favorites.some((a) => a.mal_id === anime.mal_id);
   const isWatchlisted = watchlist.some((a) => a.mal_id === anime.mal_id);
@@ -43,7 +44,7 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
                 onClick={(e) => {
                   e.preventDefault(); 
                   e.stopPropagation();
-                  addToWatchlist(anime);
+                  isWatchlisted ? removeFromWatchlist(anime.mal_id) : addToWatchlist(anime);
                 }}
                 className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
               >
@@ -60,6 +61,18 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
                 className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
               >
                 <CheckCircle className={cn("w-5 h-5", isWatched ? "stroke-green-400" : "stroke-white")} />
+              </button>
+            )}
+            {onRemove && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              >
+                <X className="w-5 h-5 stroke-white" />
               </button>
             )}
           </div>

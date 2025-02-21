@@ -1,4 +1,4 @@
-import { HomeIcon, CheckSquare, Heart, History } from "lucide-react";
+import { HomeIcon, BookOpen, Heart, History } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Search, X } from "lucide-react";
@@ -24,9 +24,7 @@ export function Navbar() {
 
   const navItems = [
     { path: "/", label: "Home", icon: <HomeIcon className="w-6 h-6" /> },
-    { path: "/watchlist", label: "Watchlist", icon: <History className="w-6 h-6" /> },
-    { path: "/watched", label: "Watched", icon: <CheckSquare className="w-6 h-6" /> },
-    { path: "/favorites", label: "Favorites", icon: <Heart className="w-6 h-6" /> },
+    { path: "/library", label: "Library", icon: <BookOpen className="w-6 h-6" /> },
   ];
 
   return (
@@ -124,4 +122,4 @@ function NavLink({
   );
 }
 
-  export default Navbar;
+export default Navbar;
