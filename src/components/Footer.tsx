@@ -4,13 +4,13 @@ import { Link } from "react-router-dom";
 
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-400 mt-16">
+    <footer className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-400  mt-16">
       <div className="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Grid principal */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           {/* Coluna 1: Sobre */}
           <div>
-            <h2 className="text-lg font-semibold text-white mb-4">About</h2>
+            <h2 className="text-lg font-semibold mb-4">About</h2>
             <p className="text-sm">
               This is a fan-made application inspired by MyAnimeList, designed to help anime fans
               discover and track their favorite shows and movies.
@@ -19,15 +19,15 @@ export function Footer() {
 
           {/* Coluna 2: Links úteis */}
           <div>
-            <h2 className="text-lg font-semibold text-white mb-4">Quick Links</h2>
+            <h2 className="text-lg font-sem mb-4">Quick Links</h2>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="hover:text-white transition-colors">
+                <Link to="/" className=" hover:text-gray-400 transition-colors">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/library" className="hover:text-white transition-colors">
+                <Link to="/library" className=" hover:text-gray-400  transition-colors">
                   Library
                 </Link>
               </li>
@@ -36,7 +36,7 @@ export function Footer() {
                   href="https://myanimelist.net"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-white transition-colors"
+                  className="   hover:text-gray-400 transition-colors"
                 >
                   MyAnimeList
                 </a>
@@ -46,13 +46,13 @@ export function Footer() {
 
           {/* Coluna 3: Redes sociais */}
           <div>
-            <h2 className="text-lg font-semibold text-white mb-4">Follow Us</h2>
+            <h2 className="text-lg font-sem mb-4">Follow Us</h2>
             <div className="flex space-x-4">
               <a
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="  hover:text-gray-400 transition-colors"
               >
                 <Facebook className="w-6 h-6" />
               </a>
@@ -60,7 +60,7 @@ export function Footer() {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="  hover:text-gray-400 transition-colors"
               >
                 <Instagram className="w-6 h-6" />
               </a>
@@ -68,7 +68,7 @@ export function Footer() {
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="  hover:text-gray-400  transition-colors"
               >
                 <Twitter className="w-6 h-6" />
               </a>
@@ -76,7 +76,7 @@ export function Footer() {
                 href="https://github.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className=" hover:text-gray-400  transition-colors"
               >
                 <Github className="w-6 h-6" />
               </a>

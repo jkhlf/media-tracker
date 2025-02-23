@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export interface Genre {
+  mal_id: number;
+  name: string;
+}
+
 export interface Anime {
   mal_id: number;
   title: string;
@@ -10,7 +15,9 @@ export interface Anime {
     };
   };
   score: number;
-  year: number;
+  year?: number;
+  genres: Genre[];
+  episodes?: number;
 }
 
 interface AnimeStore {

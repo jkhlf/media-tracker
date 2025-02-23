@@ -31,7 +31,7 @@ export function Home() {
   }
 
   return (
-    <div className="space-y-10 pt-8 px-4 max-w-7xl mx-auto sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 relative">
+    <div className="space-y-10 pt-8 px-4 max-w-7xl mx-auto sm:px-6 lg:px-8 dark:bg-gray-900 relative">
       {/* Chart da Temporada Atual */}
       {seasonNow && (
         <div>
