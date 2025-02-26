@@ -1,55 +1,44 @@
-import { Star, Users, Trophy, TrendingUp } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Star, Medal, TrendingUp, Users } from 'lucide-react';
 import React from 'react';
 
 interface AnimeStatsProps {
-  score: number;
-  rank?: number;
-  popularity?: number;
-  members?: number;
+  score?: number | null;
+  rank?: number | null;
+  popularity?: number | null;
+  members?: number | null;
 }
 
 export function AnimeStats({ score, rank, popularity, members }: AnimeStatsProps) {
-  const stats = [
-    {
-      icon: <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />,
-      label: 'Score',
-      value: score.toFixed(2),
-    },
-    rank ? {
-      icon: <Trophy className="w-4 h-4 text-purple-400" />,
-      label: 'Rank',
-      value: `#${rank}`,
-    } : null,
-    popularity ? {
-      icon: <TrendingUp className="w-4 h-4 text-green-400" />,
-      label: 'Popularity',
-      value: `#${popularity}`,
-    } : null,
-    members ? {
-      icon: <Users className="w-4 h-4 text-blue-400" />,
-      label: 'Members',
-      value: members.toLocaleString(),
-    } : null,
-  ].filter(Boolean);
+  // Helper function to format large numbers
+  const formatNumber = (num?: number | null) => {
+    if (num === null || num === undefined) return 'N/A';
+    
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
+  };
 
   return (
-    <div className="flex flex-wrap gap-6">
-      {stats.map((stat, index) => (
-        <motion.div
-          key={stat?.label}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-          className="flex items-center gap-2"
-        >
-          {stat?.icon}
-          <div className="text-sm">
-            <span className="text-gray-400">{stat?.label}:</span>{' '}
-            <span className="font-medium">{stat?.value}</span>
-          </div>
-        </motion.div>
-      ))}
+    <div className="flex flex-wrap gap-4 text-gray-300">
+      <div className="flex items-center gap-2">
+        <Star className="w-5 h-5 text-yellow-400" />
+        <span>{score !== null && score !== undefined ? score.toFixed(2) : 'N/A'}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Medal className="w-5 h-5 text-blue-400" />
+        <span>#{rank || 'N/A'}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <TrendingUp className="w-5 h-5 text-green-400" />
+        <span>#{popularity || 'N/A'}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Users className="w-5 h-5 text-purple-400" />
+        <span>{formatNumber(members)}</span>
+      </div>
     </div>
   );
 }

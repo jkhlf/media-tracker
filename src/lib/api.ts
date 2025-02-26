@@ -164,8 +164,47 @@ export const searchManga = async (query: string, page = 1) => {
   return fetchData(`/manga?q=${query}&page=${page}`);
 };
 
-export const getSchedules = async () => {
-  return fetchData('/schedules');
+interface ScheduleParams {
+  filter?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' | 'unknown' | 'other';
+  kids?: boolean;
+  sfw?: boolean;
+  unapproved?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+export const getSchedules = async (params: ScheduleParams = {}) => {
+  const queryParams = new URLSearchParams();
+  
+  if (params.filter) {
+    queryParams.append('filter', params.filter);
+  }
+  
+  if (params.kids !== undefined) {
+    // The API expects string values "true" or "false"
+    queryParams.append('kids', params.kids ? "true" : "false");
+  }
+  
+  if (params.sfw !== undefined) {
+    // The API expects string values "true" or "false"
+    queryParams.append('sfw', params.sfw ? "true" : "false");
+  }
+  
+  if (params.unapproved) {
+    queryParams.append('unapproved', '');
+  }
+  
+  if (params.page) {
+    queryParams.append('page', params.page.toString());
+  }
+  
+  if (params.limit) {
+    queryParams.append('limit', params.limit.toString());
+  }
+  
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+  console.log(`Fetching schedules with query: ${queryString}`); // Log API call for debugging
+  return fetchData(`/schedules${queryString}`);
 };
 
 export const getAnimeRecommendations = async () => {
