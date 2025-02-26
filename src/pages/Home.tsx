@@ -4,6 +4,7 @@ import { AnimeGrid } from '../components/AnimeGrid';
 import { SeasonalChart } from '../components/SeasonalChart';
 import { Loader } from 'lucide-react';
 import React from 'react';
+import HomeBanner from '../components/HomeBanner';
 
 export function Home() {
 
@@ -31,7 +32,9 @@ export function Home() {
   }
 
   return (
-    <div className="space-y-10 pt-8 px-4 max-w-7xl mx-auto sm:px-6 lg:px-8 dark:bg-gray-900 relative">
+    <div className="space-y-10 pt-8 px-4 max-w-7xl mx-auto sm:px-6 lg:px-8s relative">
+      <HomeBanner />
+      
       {/* Chart da Temporada Atual */}
       {seasonNow && (
         <div>

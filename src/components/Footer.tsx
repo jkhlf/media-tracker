@@ -49,23 +49,7 @@ export function Footer() {
             <h2 className="text-lg font-sem mb-4">Follow Us</h2>
             <div className="flex space-x-4">
               <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="  hover:text-gray-400 transition-colors"
-              >
-                <Facebook className="w-6 h-6" />
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="  hover:text-gray-400 transition-colors"
-              >
-                <Instagram className="w-6 h-6" />
-              </a>
-              <a
-                href="https://twitter.com"
+                href="https://twitter.com/kh4lf_"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="  hover:text-gray-400  transition-colors"
@@ -73,7 +57,7 @@ export function Footer() {
                 <Twitter className="w-6 h-6" />
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/jkhlf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className=" hover:text-gray-400  transition-colors"
@@ -87,7 +71,7 @@ export function Footer() {
         {/* Divisão */}
         <div className="mt-8 border-t border-gray-700 pt-4 text-center">
           <p className="text-sm">
-            &copy; {new Date().getFullYear()} AnimeApp. All rights reserved.
+            &copy; {new Date().getFullYear()} João Khalaf. All rights reserved.
           </p>
         </div>
       </div>
