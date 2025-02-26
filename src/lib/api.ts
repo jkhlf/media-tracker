@@ -219,3 +219,90 @@ export const getAnimeDetails = async (id: number) => {
   return fetchData(`/anime/${id}/full`);
 };
 
+// Add this new function for advanced filtering
+export interface AnimeFilters {
+  genres?: string[];
+  status?: string;
+  rating?: string;
+  year?: string;
+  season?: string;
+  type?: string;
+  page?: number;
+}
+
+export const getAnimeWithFilters = async (filters: AnimeFilters = {}) => {
+  const queryParams = new URLSearchParams();
+  
+  // Add filters to query params
+  if (filters.genres && filters.genres.length > 0) {
+    // The API expects genres to be specified individually, not comma-separated
+    // For example: genres[]=1&genres[]=2 instead of genres=1,2
+    filters.genres.forEach(genre => {
+      // Map genre names to their IDs (this is an approximate mapping, might need adjusting)
+      const genreMap: {[key: string]: number} = {
+        'Action': 1,
+        'Adventure': 2,
+        'Comedy': 4,
+        'Drama': 8,
+        'Fantasy': 10,
+        'Horror': 14,
+        'Mystery': 7,
+        'Romance': 22,
+        'Sci-Fi': 24,
+        'Slice of Life': 36,
+        'Sports': 30,
+        'Thriller': 41,
+        'Supernatural': 37
+      };
+      
+      const genreId = genreMap[genre];
+      if (genreId) {
+        queryParams.append('genres', genreId.toString());
+      }
+    });
+  }
+  
+  // ...existing code for other filters...
+  if (filters.status) {
+    // Map status values to match the API's expected values
+    const statusMap: {[key: string]: string} = {
+      'Airing': 'airing',
+      'Complete': 'complete',
+      'Upcoming': 'upcoming'
+    };
+    queryParams.append('status', statusMap[filters.status] || filters.status);
+  }
+  
+  if (filters.rating) {
+    queryParams.append('rating', filters.rating);
+  }
+  
+  if (filters.year) {
+    queryParams.append('start_date', `${filters.year}-01-01`);
+    queryParams.append('end_date', `${filters.year}-12-31`);
+  }
+  
+  if (filters.season && filters.year) {
+    queryParams.append('season', filters.season.toLowerCase());
+    queryParams.append('year', filters.year);
+  }
+  
+  if (filters.type) {
+    queryParams.append('type', filters.type);
+  }
+  
+  if (filters.page) {
+    queryParams.append('page', filters.page.toString());
+  }
+  
+  // Always include some sorting and pagination
+  queryParams.append('sort', 'desc');
+  queryParams.append('order_by', 'score');
+  queryParams.append('limit', '24'); // Show 24 results per page
+  
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+  console.log(`Fetching anime with filters: ${queryString}`);
+  
+  return fetchData(`/anime${queryString}`);
+};
+

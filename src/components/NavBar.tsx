@@ -1,4 +1,4 @@
-import { HomeIcon, BookOpen, BarChart, Sun, Moon, CalendarIcon } from "lucide-react";
+import { HomeIcon, BookOpen, BarChart, Sun, Moon, CalendarIcon, SearchIcon } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Search, X } from "lucide-react";
@@ -26,6 +26,7 @@ export function Navbar() {
 
   const navItems = [
     { path: "/", label: "Home", icon: <HomeIcon className="w-6 h-6" /> },
+    { path: "/catalog", label: "Catalog", icon: <SearchIcon className="w-6 h-6" /> },
     { path: "/library", label: "Library", icon: <BookOpen className="w-6 h-6" /> },
     { path: "/statistics", label: "Statistics", icon: <BarChart className="w-6 h-6" /> },
     { path: "/calendar", label: "Calendar", icon: <CalendarIcon className="w-6 h-6" /> },

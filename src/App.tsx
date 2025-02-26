@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Home } from './pages/Home';
+import { Catalog } from './pages/Catalog';
 import React from 'react';
 import NavBar from './components/NavBar';
 import { Footer } from './components/Footer';
@@ -28,6 +29,7 @@ function App() {
                 <Route path="/anime/:animeId" element={<AnimeDetailsPage />} />
                 <Route path="/statistics" element={<Statistics />} />
                 <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/catalog" element={<Catalog />} />
               </Routes>
               <Footer />
             </main>
