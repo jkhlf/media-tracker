@@ -1,99 +1,74 @@
 import React, { useState, useEffect } from 'react';
-import { X, ExternalLink, Info, Play, Star, StarOff, Shuffle, LucideArrowDownLeftFromCircle, ArrowLeftCircle, ArrowLeftCircleIcon, ArrowLeftFromLine, Heart, ListChecks } from 'lucide-react';
+import { ArrowLeftFromLine, Heart, ListChecks, Menu, ChevronDown, PlusCircle, Star, X, Play, Eye, BookmarkPlus, Check, Loader, Calendar, Clock, Users, Award, TrendingUp, Film, CalendarDays, Info, Hash, ExternalLink } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { getAnimeDetails, getAnimeRecommendationsForDetails } from '../lib/api';
+import { getAnimeDetails, getAnimeRecommendationsForDetails, getAnimeCharacters, getAnimeStaff } from '../lib/api';
 import { useAnimeStore } from '../lib/store';
-import { AnimeStats } from '../components/AnimeStats';
 import { useParams, Link } from 'react-router-dom';
-
-interface UserAnimeData {
-  episode?: number;
-  notes?: string;
-  rating?: number | null;
-  watchHistory?: { startedAt?: string, lastWatchedAt?: string };
-}
-
-const localStorageKey = 'userAnimeData';
-
-function RatingComponent({ rating, onRatingSet }: { rating: number | null, onRatingSet: (rating: number | null) => void }) {
-  const [hoverRating, setHoverRating] = useState<number | null>(null);
-
-  return (
-    <div className="flex items-center">
-      {[1, 2, 3, 4, 5].map((starIndex) => (
-        <button
-          key={starIndex}
-          type="button"
-          className="focus:outline-none"
-          onClick={() => onRatingSet(starIndex)}
-          onMouseEnter={() => setHoverRating(starIndex)}
-          onMouseLeave={() => setHoverRating(null)}
-        >
-          {starIndex <= (hoverRating !== null ? hoverRating : rating as any) ? (
-            <Star className="w-6 h-6 text-yellow-500" />
-          ) : (
-            <StarOff className="w-6 h-6 text-gray-500" />
-          )}
-        </button>
-      ))}
-      <button
-        type="button"
-        className="ml-2 text-gray-400 hover:text-red-500 focus:outline-none"
-        onClick={() => onRatingSet(null)}
-      >
-        Clear
-      </button>
-    </div>
-  );
-}
-
+import { toast } from 'react-toastify';
+import { Dialog } from '@headlessui/react';
 
 function TabButton({
   children,
   active,
   onClick,
-  icon,
-}: {
-  children: React.ReactNode;
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`pb-4 relative flex items-center gap-2 ${active ? 'text-white' : 'text-gray-400 hover:text-gray-300'
-        }`}
+      className={`pb-4 relative px-6 ${
+        active 
+          ? 'text-white border-b-2 border-blue-500 font-medium' 
+          : 'text-gray-400 hover:text-gray-300'
+      }`}
     >
-      {icon}
       {children}
-      {active && (
-        <motion.div
-          layoutId="activeTab"
-          className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
-        />
-      )}
     </button>
   );
 }
 
+// Helper function to format date
+const formatDate = (dateString) => {
+  if (!dateString) return 'Unknown';
+  
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  try {
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  } catch (e) {
+    return dateString; // Fallback to original string if parsing fails
+  }
+};
+
+// Helper to capitalize words
+const capitalize = (string) => {
+  if (!string) return '';
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
 
 export function AnimeDetailsPage() { 
-  const { animeId: animeIdParam } = useParams(); // Get animeId from URL params
-  const animeId = animeIdParam ? parseInt(animeIdParam, 10) : null; // Parse animeId to number
+  const { animeId: animeIdParam } = useParams();
+  const animeId = animeIdParam ? parseInt(animeIdParam, 10) : null;
 
-  const { data: animeDetailsData, isLoading } = useQuery({
+  // Primary anime details query
+  const { 
+    data: animeDetailsData, 
+    isLoading 
+  } = useQuery({
     queryKey: ['animeDetails', animeId],
-    queryFn: () => getAnimeDetails(animeId as number), // Type assertion as animeId is checked below
-    enabled: animeId !== null, // Only run query if animeId is valid
+    queryFn: () => getAnimeDetails(animeId as number),
+    enabled: animeId !== null,
   });
   const anime = animeDetailsData?.data;
 
-  // --- User Data Features ---
-  const [userAnimeData, setUserAnimeData] = useState<UserAnimeData>(() => {
-    if (animeId === null) return {}; // Return empty if no animeId
-    const storedData = localStorage.getItem(localStorageKey);
+  // User data state
+  const [userAnimeData, setUserAnimeData] = useState<{
+    episode?: number;
+    notes?: string;
+    rating?: number | null;
+    watchHistory?: { startedAt?: string, lastWatchedAt?: string };
+  }>(() => {
+    if (animeId === null) return {};
+    const storedData = localStorage.getItem('userAnimeData');
     if (storedData) {
       const parsedData = JSON.parse(storedData)[animeId] || {};
       return parsedData;
@@ -102,87 +77,178 @@ export function AnimeDetailsPage() {
   });
 
   useEffect(() => {
-    if (animeId === null) return; // Don't save if no animeId
-    const storedData = JSON.parse(localStorage.getItem(localStorageKey) || '{}');
+    if (animeId === null) return;
+    const storedData = JSON.parse(localStorage.getItem('userAnimeData') || '{}');
     storedData[animeId] = userAnimeData;
-    localStorage.setItem(localStorageKey, JSON.stringify(storedData));
+    localStorage.setItem('userAnimeData', JSON.stringify(storedData));
   }, [userAnimeData, animeId]);
 
-  const handleEpisodeChange = (change: number) => {
-    setUserAnimeData(prevData => ({
-      ...prevData,
-      episode: Math.max(0, (prevData.episode || 0) + change),
-    }));
-  };
+  const [selectedTab, setSelectedTab] = useState('overview');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState('');
 
-  const handleNotesChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setUserAnimeData(prevData => ({ ...prevData, notes: event.target.value }));
-  };
-
-  const handleRatingSet = (rating: number | null) => {
-    setUserAnimeData(prevData => ({ ...prevData, rating }));
-  };
-
-  const handleAddToWatchHistory = () => {
-    setUserAnimeData(prevData => {
-      const now = new Date().toISOString();
-      return {
-        ...prevData,
-        watchHistory: {
-          startedAt: prevData.watchHistory?.startedAt || now,
-          lastWatchedAt: now,
-        }
-      };
-    });
-  };
-
-  // --- React Query and Store Hooks ---
+  // Store hooks
   const { 
     addToWatchlist, 
     removeFromWatchlist,
     addToFavorites, 
     removeFromFavorites,
     favorites,
-    watchlist
+    watchlist,
+    watched,
+    watching,
+    collections,
+    addToWatched,
+    addToWatching,
+    removeFromWatched,
+    removeFromWatching,
+    addToCollection,
+    createCollection,
+    removeFromCollection
   } = useAnimeStore();
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'personal' | 'watch' | 'related'>('overview');
   
-  // Check if anime is in favorites or watchlist
+  // Check if anime is in various lists
   const isInFavorites = animeId ? favorites.some(item => item.mal_id === animeId) : false;
   const isInWatchlist = animeId ? watchlist.some(item => item.mal_id === animeId) : false;
+  const isInWatched = animeId ? watched.some(item => item.mal_id === animeId) : false;
+  const isInWatching = animeId ? watching.some(item => item.mal_id === animeId) : false;
 
-  // --- Fetch Related Anime Recommendations ---
+  // Check which collections contain this anime
+  const animeCollections = animeId 
+    ? collections.filter(collection => 
+        collection.animes.some(anime => anime.mal_id === animeId)
+      )
+    : [];
+
+  // Lazy loaded data for different tabs
   const {
-    data: relatedAnimeData,
-    isLoading: isRelatedAnimeLoading,
-    error: relatedAnimeError,
+    data: recommendationsData,
+    isLoading: isRecommendationsLoading,
+    error: recommendationsError,
   } = useQuery({
     queryKey: ['animeRecommendations', animeId],
-    queryFn: () => getAnimeRecommendationsForDetails(animeId as number), // Type assertion as animeId is checked
-    enabled: selectedTab === 'related' && animeId !== null, // Conditionally enable query
+    queryFn: () => getAnimeRecommendationsForDetails(animeId as number),
+    enabled: selectedTab === 'related' && animeId !== null,
   });
 
-  const recommendations = relatedAnimeData?.data;
+  const {
+    data: charactersData,
+    isLoading: isCharactersLoading,
+    error: charactersError,
+  } = useQuery({
+    queryKey: ['animeCharacters', animeId],
+    queryFn: () => getAnimeCharacters(animeId as number),
+    enabled: selectedTab === 'characters' && animeId !== null,
+  });
 
+  const {
+    data: staffData,
+    isLoading: isStaffLoading,
+    error: staffError,
+  } = useQuery({
+    queryKey: ['animeStaff', animeId],
+    queryFn: () => getAnimeStaff(animeId as number),
+    enabled: selectedTab === 'staff' && animeId !== null,
+  });
 
-  if (isLoading || animeId === null) { // Handle null animeId (e.g., invalid route)
+  // Event handlers for collection and lists
+  const handleFavoriteToggle = () => {
+    if (!anime) return;
+    
+    if (isInFavorites) {
+      removeFromFavorites(anime.mal_id);
+      toast.success('Removed from favorites');
+    } else {
+      addToFavorites(anime);
+      toast.success('Added to favorites');
+    }
+  };
+
+  const handleWatchlistToggle = () => {
+    if (!anime) return;
+    
+    if (isInWatchlist) {
+      removeFromWatchlist(anime.mal_id);
+      toast.success('Removed from watch list');
+    } else {
+      addToWatchlist(anime);
+      toast.success('Added to watch list');
+    }
+  };
+  
+  const handleWatchedToggle = () => {
+    if (!anime) return;
+    
+    if (isInWatched) {
+      removeFromWatched(anime.mal_id);
+      toast.success('Removed from watched');
+    } else {
+      addToWatched(anime);
+      toast.success('Marked as watched');
+    }
+  };
+  
+  const handleWatchingToggle = () => {
+    if (!anime) return;
+    
+    if (isInWatching) {
+      removeFromWatching(anime.mal_id);
+      toast.success('Removed from watching');
+    } else {
+      addToWatching(anime);
+      toast.success('Added to watching');
+    }
+  };
+  
+  const handleAddToCollection = (collectionName) => {
+    if (!anime) return;
+    
+    addToCollection(anime, collectionName);
+    toast.success(`Added to ${collectionName}`);
+    setIsDropdownOpen(false);
+  };
+  
+  const handleRemoveFromCollection = (collectionName) => {
+    if (!animeId) return;
+    
+    removeFromCollection(animeId, collectionName);
+    toast.success(`Removed from collection: ${collectionName}`);
+    setIsDropdownOpen(false);
+  };
+  
+  const handleCreateCollection = () => {
+    if (!anime || !newCollectionName.trim()) return;
+    
+    if (collections.some(c => c.name === newCollectionName)) {
+      toast.error('Collection with this name already exists');
+      return;
+    }
+    
+    createCollection(newCollectionName);
+    addToCollection(anime, newCollectionName);
+    toast.success(`Added to new collection: ${newCollectionName}`);
+    setNewCollectionName('');
+    setIsCreateCollectionOpen(false);
+    setIsDropdownOpen(false);
+  };
+
+  // Loading state
+  if (isLoading || animeId === null) {
     return (
-      <div className="bg-gray-900 min-h-screen text-white flex items-center justify-center">
-        {animeId === null ? (
-          <div className="text-center">
-            <p className="text-red-500 text-xl mb-4">Invalid Anime ID.</p>
-            <Link to="/" className="text-blue-500 hover:underline">Go back to Home</Link>
-          </div>
-        ) : (
-          <div className="animate-pulse">Loading Anime Details...</div>
-        )}
+      <div className="bg-black min-h-screen text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader className="w-10 h-10 animate-spin text-blue-500" />
+          <p>Loading anime details...</p>
+        </div>
       </div>
     );
   }
 
+  // Error state
   if (!anime) {
     return (
-      <div className="bg-gray-900 min-h-screen text-white flex items-center justify-center">
+      <div className="bg-black min-h-screen text-white flex items-center justify-center">
         <div className="text-gray-400 text-center">
           <p>No details available for this anime.</p>
           <Link to="/" className="mt-4 px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors inline-block">
@@ -194,288 +260,621 @@ export function AnimeDetailsPage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-screen bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100 " // Full page background
-    >
-      <div className="container mx-auto pt-12 pb-24"> {/* Container for content, added padding */}
-        <div className="relative">
-          {/* Hero Section */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="h-[55vh] max-w-5xl relative mx-auto px-4 md:px-8 rounded-lg overflow-hidden" // Added rounded-lg and overflow-hidden
-          >
-            <img
-              src={anime.images.webp.large_image_url || anime.images.webp.image_url}
-              alt={anime.title}
-              className="w-full h-full object-contain" // Changed object-contain to object-cover for hero
-            />
-            <div className="absolute inset-0" />
-            <Link to="/" className="absolute top-4 right-4 p-2 bg-gray-900/50 rounded-full hover:bg-gray-900/75 transition-colors">
-            <ArrowLeftFromLine className="w-6 h-6 flex hover:text-gray-400 transition-colors" /> 
-            </Link>
-          </motion.div>
-
-          {/* Content */}
-          <div className="max-w-6xl mx-auto px-4 md:px-8 -mt-32 relative space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
-            >
-              <h1 className="text-2xl md:text-4xl font-bold">{anime.title}</h1>
-
-              <AnimeStats
-                score={anime.score}
-                rank={anime.rank}
-                popularity={anime.popularity}
-                members={anime.members}
+    <div className="min-h-screen bg-black text-white">
+      {/* Hero Banner with background image */}
+      <div 
+        className="relative w-full h-[450px] bg-cover bg-center" 
+        style={{ 
+          backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.9)), url(${anime.images?.jpg?.large_image_url})`,
+          backgroundPosition: 'center 30%'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+        
+        <div className="container mx-auto h-full px-4 relative pt-8">
+          <Link to="/" className="inline-block p-2 bg-black/50 rounded-full hover:bg-black/75 transition-colors">
+            <ArrowLeftFromLine className="w-6 h-6 text-white" /> 
+          </Link>
+          
+          {/* Watch Trailer Button */}
+          {anime.trailer?.url && (
+            <div className="absolute top-8 right-4">
+              <a 
+                href={anime.trailer.url}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-full font-medium hover:bg-gray-200 transition"
+              >
+                <Play className="w-4 h-4" /> Watch Trailer
+              </a>
+            </div>
+          )}
+          
+          <div className="absolute bottom-0 left-0 right-0 container mx-auto px-4 pb-8 flex">
+            {/* Anime Poster */}
+            <div className="w-48 h-72 rounded-md overflow-hidden shadow-lg border border-gray-700 mr-6 flex-shrink-0">
+              <img 
+                src={anime.images?.webp?.large_image_url || anime.images?.jpg?.image_url} 
+                alt={anime.title} 
+                className="w-full h-full object-cover"
+                loading="eager"
               />
-
+            </div>
+            
+            {/* Anime Info */}
+            <div className="pt-20">
+              <h1 className="text-3xl font-bold mb-2">{anime.title}</h1>
+              {anime.title_english && anime.title_english !== anime.title && (
+                <h2 className="text-xl text-gray-400 mb-2">{anime.title_english}</h2>
+              )}
+              
+              <div className="flex items-center gap-6 mb-6">
+                {anime.score && (
+                  <div className="flex items-center gap-1">
+                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                    <span className="text-xl font-medium">{anime.score}</span>
+                    <span className="text-sm text-gray-400">
+                      ({anime.scored_by ? new Intl.NumberFormat().format(anime.scored_by) : '?'} users)
+                    </span>
+                  </div>
+                )}
+                
+                {anime.rank && (
+                  <div className="flex items-center gap-1">
+                    <Award className="w-5 h-5 text-purple-400" />
+                    <span className="text-sm">Rank #{anime.rank}</span>
+                  </div>
+                )}
+                
+                {anime.popularity && (
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="w-5 h-5 text-green-400" />
+                    <span className="text-sm">#{anime.popularity} in Popularity</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={() => {
-                    if (isInWatchlist) {
-                      removeFromWatchlist(anime.mal_id);
-                    } else {
-                      addToWatchlist(anime);
-                      handleAddToWatchHistory();
-                    }
-                  }}
-                  className={`px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 ${
-                    isInWatchlist 
-                      ? 'bg-gray-700 hover:bg-red-700 text-white' 
-                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/20'
-                  }`}
+                  onClick={handleWatchingToggle}
+                  className={`px-4 py-2 rounded-md flex items-center gap-2 ${
+                    isInWatching ? 'bg-purple-700' : 'bg-gray-800 hover:bg-gray-700'
+                  } transition-colors`}
                 >
-                  {isInWatchlist ? (
-                    <>
-                      <X className="w-5 h-5" /> Remove from Watchlist
-                    </>
-                  ) : (
-                    <>
-                      <ListChecks className="w-5 h-5" /> Add to Watchlist
-                    </>
-                  )}
+                  <Eye className="w-4 h-4" /> 
+                  {isInWatching ? 'Watching' : 'Add to Watching'}
                 </button>
                 
                 <button
-                  onClick={() => {
-                    if (isInFavorites) {
-                      removeFromFavorites(anime.mal_id);
-                    } else {
-                      addToFavorites(anime);
-                    }
-                  }}
-                  className={`px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 ${
-                    isInFavorites 
-                      ? 'bg-pink-700 hover:bg-red-700 text-white' 
-                      : 'bg-gray-800 hover:bg-pink-700 text-white'
-                  }`}
+                  onClick={handleWatchlistToggle}
+                  className={`px-4 py-2 rounded-md flex items-center gap-2 ${
+                    isInWatchlist ? 'bg-blue-700' : 'bg-gray-800 hover:bg-gray-700'
+                  } transition-colors`}
                 >
-                  <Heart className={`w-5 h-5 ${isInFavorites ? 'fill-white' : ''}`} />
-                  {isInFavorites ? 'Remove from Favorites' : 'Add to Favorites'}
+                  <BookmarkPlus className="w-4 h-4" /> 
+                  {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
                 </button>
-              </div>
-            </motion.div>
-
-            {/* Tabs */}
-            <div className="border-b border-gray-800">
-              <div className="flex gap-8">
-                <TabButton
-                  active={selectedTab === 'overview'}
-                  onClick={() => setSelectedTab('overview')}
-                  icon={<Info className="w-4 h-4" />}
+                
+                <button
+                  onClick={handleWatchedToggle}
+                  className={`px-4 py-2 rounded-md flex items-center gap-2 ${
+                    isInWatched ? 'bg-green-700' : 'bg-gray-800 hover:bg-gray-700'
+                  } transition-colors`}
                 >
-                  Overview
-                </TabButton>
-                <TabButton
-                  active={selectedTab === 'personal'}
-                  onClick={() => setSelectedTab('personal')}
-                  icon={<Star className="w-4 h-4" />}
+                  <Check className="w-4 h-4" /> 
+                  {isInWatched ? 'Watched' : 'Mark as Watched'}
+                </button>
+                
+                <button
+                  onClick={handleFavoriteToggle}
+                  className={`px-4 py-2 rounded-md flex items-center gap-2 ${
+                    isInFavorites ? 'bg-red-700' : 'bg-gray-800 hover:bg-gray-700'
+                  } transition-colors`}
                 >
-                  Personal
-                </TabButton>
-                <TabButton
-                  active={selectedTab === 'watch'}
-                  onClick={() => setSelectedTab('watch')}
-                  icon={<Play className="w-4 h-4" />}
-                >
-                  Where to Watch
-                </TabButton>
-                <TabButton
-                  active={selectedTab === 'related'}
-                  onClick={() => setSelectedTab('related')}
-                  icon={<Shuffle className="w-4 h-4" />}
-                >
-                  Related Anime
-                </TabButton>
+                  <Heart className={`w-4 h-4 ${isInFavorites ? 'fill-white' : ''}`} /> 
+                  {isInFavorites ? 'Favorited' : 'Add to Favorites'}
+                </button>
+                
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="px-4 py-2 rounded-md flex items-center gap-2 bg-gray-800 hover:bg-gray-700 transition-colors"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Add to Collection
+                  </button>
+                  
+                  {isDropdownOpen && (
+                    <div className="absolute left-0 mt-2 bg-gray-800 rounded-md shadow-lg overflow-hidden z-10 w-64 max-h-60 overflow-y-auto">
+                      <div className="p-2">
+                        <button
+                          onClick={() => setIsCreateCollectionOpen(true)}
+                          className="w-full py-2 px-3 text-left rounded-md text-white hover:bg-gray-700 flex items-center gap-2"
+                        >
+                          <PlusCircle size={16} />
+                          Create new collection
+                        </button>
+                        
+                        {/* If the anime is in any collections, show them with option to remove */}
+                        {animeCollections.length > 0 && (
+                          <>
+                            <div className="h-px bg-gray-700 my-2"></div>
+                            <p className="px-3 py-1 text-xs text-gray-400">In collections:</p>
+                            
+                            {animeCollections.map((collection) => (
+                              <div key={collection.name} className="flex items-center justify-between py-1 px-3 hover:bg-gray-700 rounded-md">
+                                <span className="text-sm text-gray-300">{collection.name}</span>
+                                <button
+                                  onClick={() => handleRemoveFromCollection(collection.name)}
+                                  className="p-1 text-gray-400 hover:text-red-500"
+                                  title={`Remove from ${collection.name}`}
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                        
+                        {collections.filter(c => !animeCollections.some(ac => ac.name === c.name)).length > 0 && (
+                          <>
+                            <div className="h-px bg-gray-700 my-2"></div>
+                            <p className="px-3 py-1 text-xs text-gray-400">Add to collection:</p>
+                            
+                            {collections
+                              .filter(c => !animeCollections.some(ac => ac.name === c.name))
+                              .map((collection) => (
+                                <button
+                                  key={collection.name}
+                                  onClick={() => handleAddToCollection(collection.name)}
+                                  className="w-full py-2 px-3 text-left rounded-md text-white hover:bg-gray-700"
+                                >
+                                  {collection.name}
+                                </button>
+                              ))}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-
-            {/* Tab Content */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="pb-12"
-            >
-              {selectedTab === 'overview' && (
-                <div className="space-y-6">
-                  <p className="text-gray-300 leading-relaxed">{anime.synopsis}</p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {anime.genres && anime.genres.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Genres</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {anime.genres.map((genre: any) => (
-                            <span
-                              key={genre.mal_id}
-                              className="px-3 py-1 bg-gray-800 rounded-full text-sm"
-                            >
-                              {genre.name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {anime.studios && anime.studios.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Studios</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {anime.studios.map((studio: any) => (
-                            <span
-                              key={studio.mal_id}
-                              className="text-blue-400"
-                            >
-                              {studio.name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {selectedTab === 'personal' && (
-                <div className="space-y-6">
-                  {/* Episode Tracking */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Episode Tracking</h3>
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={() => handleEpisodeChange(-1)}
-                        className="px-3 py-2 bg-gray-800 rounded hover:bg-gray-700 transition-colors"
-                      >-</button>
-                      <span className="text-xl">{userAnimeData.episode || 0}</span>
-                      <button
-                        onClick={() => handleEpisodeChange(1)}
-                        className="px-3 py-2 bg-gray-800 rounded hover:bg-gray-700 transition-colors"
-                      >+</button>
-                    </div>
-                  </div>
-
-                  {/* Personal Notes */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Personal Notes</h3>
-                    <textarea
-                      value={userAnimeData.notes || ''}
-                      onChange={handleNotesChange}
-                      placeholder="Write your notes here..."
-                      className="w-full p-3 bg-gray-800 rounded-lg resize-none h-32 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Custom Rating */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Your Rating</h3>
-                    <RatingComponent rating={userAnimeData.rating as any} onRatingSet={handleRatingSet} />
-                  </div>
-
-                  {/* Watch History */}
-                  {userAnimeData.watchHistory && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Watch History</h3>
-                      {userAnimeData.watchHistory.startedAt && (
-                        <p className="text-gray-300">Started Watching: {new Date(userAnimeData.watchHistory.startedAt).toLocaleDateString()}</p>
-                      )}
-                      {userAnimeData.watchHistory.lastWatchedAt && (
-                        <p className="text-gray-300">Last Watched: {new Date(userAnimeData.watchHistory.lastWatchedAt).toLocaleDateString()}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {selectedTab === 'watch' && (
-                <div className="space-y-6">
-                  {anime.streaming && anime.streaming.length > 0 ? (
-                    <div className="grid gap-4">
-                      {anime.streaming.map((platform: any) => (
-                        <a
-                          key={platform.url}
-                          href={platform.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-between p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
-                        >
-                          <span>{platform.name}</span>
-                          <ExternalLink className="w-5 h-5" />
-                        </a>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No streaming platforms available.</p>
-                  )}
-                </div>
-              )}
-
-              {selectedTab === 'related' && (
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold mb-2">Related Anime Recommendations</h3>
-                  {isRelatedAnimeLoading ? (
-                    <div className="animate-pulse text-gray-400">Loading recommendations...</div>
-                  ) : relatedAnimeError ? (
-                    <div className="text-red-500">Error loading recommendations.</div>
-                  ) : recommendations && recommendations.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {recommendations.map((recommendation: any) => (
-                        <div key={recommendation.entry.mal_id} className="bg-gray-800 rounded-lg p-4 flex flex-col"> {/* Flex column for image and text */}
-                          <a
-                            href={`https://myanimelist.net/anime/${recommendation.entry.mal_id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            <h4 className="font-semibold text-blue-400">{recommendation.entry.title}</h4>
-                          </a>
-                          {recommendation.entry.images?.webp?.thumb_image_url && ( // Check if image URL exists
-                            <img
-                              src={recommendation.entry.images.webp.thumb_image_url}
-                              alt={recommendation.entry.title}
-                              className="w-full h-32 object-cover rounded-md mt-2 mb-2" // Added image style
-                            />
-                          )}
-                          <p className="text-gray-300 text-sm mt-auto">{recommendation.content}</p> {/* mt-auto to push content to bottom */}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No recommendations found for this anime.</p>
-                  )}
-                </div>
-              )}
-            </motion.div>
           </div>
         </div>
       </div>
-    </motion.div>
+
+      {/* Navigation Tabs */}
+      <div className="container mx-auto px-4 mt-8">
+        <div className="flex overflow-x-auto border-b border-gray-800">
+          <TabButton
+            active={selectedTab === 'overview'}
+            onClick={() => setSelectedTab('overview')}
+          >
+            Overview
+          </TabButton>
+          <TabButton
+            active={selectedTab === 'characters'}
+            onClick={() => setSelectedTab('characters')}
+          >
+            Characters
+          </TabButton>
+          <TabButton
+            active={selectedTab === 'staff'}
+            onClick={() => setSelectedTab('staff')}
+          >
+            Staff
+          </TabButton>
+          <TabButton
+            active={selectedTab === 'related'}
+            onClick={() => setSelectedTab('related')}
+          >
+            Recommended
+          </TabButton>
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      <div className="container mx-auto px-4 py-8">
+        {/* OVERVIEW TAB - ENHANCED WITH DETAILED INFORMATION */}
+        {selectedTab === 'overview' && (
+          <div className="space-y-8">
+            {/* Synopsis */}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Synopsis</h2>
+              <p className="text-gray-300 leading-relaxed max-w-4xl">{anime.synopsis}</p>
+            </div>
+            
+            {/* Key Information Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl">
+              {/* Basic Info */}
+              <div className="bg-gray-900 p-5 rounded-lg space-y-3">
+                <h3 className="text-lg font-semibold border-b border-gray-800 pb-2 flex items-center gap-2">
+                  <Info className="w-5 h-5 text-blue-400" /> Basic Info
+                </h3>
+                
+                <div className="space-y-2">
+                  {anime.type && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Type:</span>
+                      <span className="font-medium">{anime.type}</span>
+                    </div>
+                  )}
+                  
+                  {anime.episodes && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Episodes:</span>
+                      <span className="font-medium">{anime.episodes}</span>
+                    </div>
+                  )}
+                  
+                  {anime.duration && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Duration:</span>
+                      <span className="font-medium">{anime.duration}</span>
+                    </div>
+                  )}
+                  
+                  {anime.rating && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Rating:</span>
+                      <span className="font-medium">{anime.rating}</span>
+                    </div>
+                  )}
+                  
+                  {anime.source && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Source:</span>
+                      <span className="font-medium">{anime.source}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Broadcast Info */}
+              <div className="bg-gray-900 p-5 rounded-lg space-y-3">
+                <h3 className="text-lg font-semibold border-b border-gray-800 pb-2 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-green-400" /> Broadcast
+                </h3>
+                
+                <div className="space-y-2">
+                  {anime.status && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Status:</span>
+                      <span className={`font-medium ${
+                        anime.status === 'Currently Airing' 
+                          ? 'text-green-400' 
+                          : anime.status === 'Finished Airing' 
+                            ? 'text-blue-400' 
+                            : ''
+                      }`}>
+                        {anime.status}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {anime.aired && anime.aired.from && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Aired from:</span>
+                      <span className="font-medium">{formatDate(anime.aired.from)}</span>
+                    </div>
+                  )}
+                  
+                  {anime.aired && anime.aired.to && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Aired to:</span>
+                      <span className="font-medium">{formatDate(anime.aired.to)}</span>
+                    </div>
+                  )}
+                  
+                  {anime.season && anime.year && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Season:</span>
+                      <span className="font-medium">{capitalize(anime.season)} {anime.year}</span>
+                    </div>
+                  )}
+                  
+                  {anime.broadcast && anime.broadcast.day && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Broadcast day:</span>
+                      <span className="font-medium">{anime.broadcast.day}s</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Statistics */}
+              <div className="bg-gray-900 p-5 rounded-lg space-y-3">
+                <h3 className="text-lg font-semibold border-b border-gray-800 pb-2 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-yellow-400" /> Statistics
+                </h3>
+                
+                <div className="space-y-2">
+                  {anime.score && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Score:</span>
+                      <span className="font-medium text-yellow-400">{anime.score}</span>
+                    </div>
+                  )}
+                  
+                  {anime.scored_by && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Scored by:</span>
+                      <span className="font-medium">{new Intl.NumberFormat().format(anime.scored_by)}</span>
+                    </div>
+                  )}
+                  
+                  {anime.rank && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Rank:</span>
+                      <span className="font-medium">#{anime.rank}</span>
+                    </div>
+                  )}
+                  
+                  {anime.popularity && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Popularity:</span>
+                      <span className="font-medium">#{anime.popularity}</span>
+                    </div>
+                  )}
+                  
+                  {anime.members && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Members:</span>
+                      <span className="font-medium">{new Intl.NumberFormat().format(anime.members)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Production Info */}
+              <div className="bg-gray-900 p-5 rounded-lg space-y-3">
+                <h3 className="text-lg font-semibold border-b border-gray-800 pb-2 flex items-center gap-2">
+                  <Film className="w-5 h-5 text-purple-400" /> Production
+                </h3>
+                
+                <div className="space-y-3">
+                  {anime.studios && anime.studios.length > 0 && (
+                    <div>
+                      <span className="text-gray-400 block mb-1">Studios:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {anime.studios.map(studio => (
+                          <span key={studio.mal_id} className="text-blue-400 text-sm">
+                            {studio.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {anime.producers && anime.producers.length > 0 && (
+                    <div>
+                      <span className="text-gray-400 block mb-1">Producers:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {anime.producers.map(producer => (
+                          <span key={producer.mal_id} className="text-purple-400 text-sm">
+                            {producer.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {anime.licensors && anime.licensors.length > 0 && (
+                    <div>
+                      <span className="text-gray-400 block mb-1">Licensors:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {anime.licensors.map(licensor => (
+                          <span key={licensor.mal_id} className="text-green-400 text-sm">
+                            {licensor.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Genres Section */}
+            <div className="space-y-4 max-w-6xl">
+              <h3 className="text-xl font-semibold">Genres</h3>
+              <div className="flex flex-wrap gap-2">
+                {anime.genres && anime.genres.map(genre => (
+                  <span 
+                    key={genre.mal_id}
+                    className="px-4 py-2 bg-gray-800 rounded-md hover:bg-gray-700 transition-colors cursor-pointer"
+                  >
+                    {genre.name}
+                  </span>
+                ))}
+                
+                {anime.demographics && anime.demographics.map(demo => (
+                  <span 
+                    key={demo.mal_id}
+                    className="px-4 py-2 bg-blue-900 rounded-md hover:bg-blue-800 transition-colors cursor-pointer"
+                  >
+                    {demo.name}
+                  </span>
+                ))}
+                
+                {anime.themes && anime.themes.map(theme => (
+                  <span 
+                    key={theme.mal_id}
+                    className="px-4 py-2 bg-purple-900 rounded-md hover:bg-purple-800 transition-colors cursor-pointer"
+                  >
+                    {theme.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            {/* External Links */}
+            {anime.external && anime.external.length > 0 && (
+              <div className="space-y-4 max-w-6xl">
+                <h3 className="text-xl font-semibold">External Links</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {anime.external.map((link, index) => (
+                    <a
+                      key={index}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-3 bg-gray-800 rounded-md hover:bg-gray-700 transition-colors"
+                    >
+                      <span>{link.name}</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Streaming Services */}
+            {anime.streaming && anime.streaming.length > 0 && (
+              <div className="space-y-4 max-w-6xl">
+                <h3 className="text-xl font-semibold">Where to Watch</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {anime.streaming.map((service, index) => (
+                    <a
+                      key={index}
+                      href={service.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-3 bg-gray-800 rounded-md hover:bg-gray-700 transition-colors"
+                    >
+                      <span>{service.name}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {selectedTab === 'staff' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-4">Staff</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {anime.producers && anime.producers.length > 0 ? (
+                anime.producers.map((producer) => (
+                  <div key={producer.mal_id} className="bg-gray-900 rounded-lg overflow-hidden">
+                    <div className="w-full h-48 bg-gray-800">
+                      <img 
+                        src={`https://via.placeholder.com/200x250?text=${encodeURIComponent(producer.name)}`}
+                        alt={producer.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-medium">{producer.name}</h3>
+                      <p className="text-sm text-gray-400">Producer</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400 col-span-full">No staff information available.</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {selectedTab === 'related' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-4">Related Anime</h2>
+            {isRecommendationsLoading ? (
+              <div className="animate-pulse text-gray-400">Loading recommendations...</div>
+            ) : recommendationsError ? (
+              <div className="text-red-500">Error loading recommendations.</div>
+            ) : recommendationsData && recommendationsData.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recommendationsData.map((recommendation) => (
+                  <div key={recommendation.entry.mal_id} className="bg-gray-800 rounded-lg p-4 flex flex-col">
+                    <a
+                      href={`/anime/${recommendation.entry.mal_id}`}
+                      className="hover:underline"
+                    >
+                      <h4 className="font-semibold text-blue-400">{recommendation.entry.title}</h4>
+                    </a>
+                    {recommendation.entry.images?.webp?.image_url && (
+                      <img
+                        src={recommendation.entry.images.webp.image_url}
+                        alt={recommendation.entry.title}
+                        className="w-full h-32 object-cover rounded-md mt-2 mb-2"
+                      />
+                    )}
+                    <p className="text-gray-300 text-sm mt-auto">{recommendation.content}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400">No recommendations found for this anime.</p>
+            )}
+          </div>
+        )}
+
+        {selectedTab === 'characters' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-4">Characters</h2>
+            <p className="text-gray-400">Character information is not available in the current API response.</p>
+          </div>
+        )}
+
+        {selectedTab === 'relations' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-4">Relations</h2>
+            <p className="text-gray-400">Relation information is not available in the current API response.</p>
+          </div>
+        )}
+
+        {selectedTab === 'reviews' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-4">Reviews</h2>
+            <p className="text-gray-400">Review information is not available in the current API response.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Create Collection Dialog */}
+      <Dialog
+        open={isCreateCollectionOpen}
+        onClose={() => setIsCreateCollectionOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+        
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-gray-800 p-6 shadow-xl">
+            <Dialog.Title className="text-lg font-bold mb-4">Create New Collection</Dialog.Title>
+            
+            <div className="mb-4">
+              <input
+                type="text"
+                value={newCollectionName}
+                onChange={(e) => setNewCollectionName(e.target.value)}
+                placeholder="Collection Name"
+                className="w-full p-2 border border-gray-600 bg-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
+              />
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsCreateCollectionOpen(false)}
+                className="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateCollection}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Create
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+    </div>
   );
 }
 

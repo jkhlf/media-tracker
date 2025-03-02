@@ -27,7 +27,7 @@ const HomeBanner: React.FC = () => {
         
         {/* Right side: Carousel */}
         <div className="w-full md:w-1/2">
-          <div className="rounded-lg overflow-hidden shadow-md">
+          <div className="overflow-hidden">
             <AnimeCarousel />
           </div>
         </div>

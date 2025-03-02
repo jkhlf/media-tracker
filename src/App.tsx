@@ -33,7 +33,16 @@ function App() {
               </Routes>
               <Footer />
             </main>
-            <ToastContainer />
+            <ToastContainer position="bottom-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              style={{ zIndex: 9999 }} />
           </div>
         </Router>
       </ThemeProvider>

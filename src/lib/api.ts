@@ -329,3 +329,11 @@ export const getAnimeWithFilters = async (filters: AnimeFilters = {}) => {
   return fetchData(`/anime${queryString}`);
 };
 
+
+export const getAnimeCharacters = async (id: number) => {
+  return fetchData(`/characters/${id}/anime`);
+}
+
+export const getAnimeStaff = async (id: number) => {
+  return fetchData(`/anime/${id}/staff`);
+}

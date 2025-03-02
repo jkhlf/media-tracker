@@ -82,14 +82,14 @@ const AnimeCards = () => {
 
     if (topLoading || !topAnime) { 
         return (
-            <div className="flex items-center justify-center h-[500px] bg-gray-100 dark:bg-gray-800 rounded-lg"> 
+            <div className="flex items-center justify-center h-[500px] bg-gray-100 dark:bg-gray-800"> 
                 <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
 
     return (
-        <div className="relative h-[500px] w-full flex items-center justify-center overflow-hiddenp-8">
+        <div className="relative h-[500px] w-full flex items-center justify-center overflow-hidden p-8">
             <div className="relative w-full h-full flex items-center justify-center">
                 {topAnime.data.slice(0, 6).map((anime, index) => (
                     <div
@@ -116,8 +116,8 @@ const AnimeCards = () => {
                         
                         {(index - currentIndex + 6) % 6 === 0 && (
                             <div className="absolute -bottom-16 left-0 right-0 text-center">
-                                <h3 className="text-xl text-white font-medium mb-1">{anime.title}</h3>
-                                <p className="text-sm text-white/80">
+                                <h3 className="text-xl text-black/80 dark:text-white font-medium mb-1">{anime.title}</h3>
+                                <p className="text-sm text-black/70 dark:text-white">
                                     {anime.year ? `${anime.year}` : ''} 
                                     {anime.year && anime.genres?.length ? ' • ' : ''}
                                     {anime.genres?.slice(0, 1).map(g => g.name).join('')}

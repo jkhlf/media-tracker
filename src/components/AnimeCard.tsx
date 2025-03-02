@@ -9,9 +9,10 @@ interface AnimeCardProps {
   anime: Anime;
   className?: string;
   onRemove?: () => void;
+  showRemoveButton?: boolean;
 }
 
-export function AnimeCard({ anime, className, onRemove }: AnimeCardProps) {
+export const AnimeCard: React.FC<AnimeCardProps> = ({ anime, className, onRemove, showRemoveButton = false }) => {
   const { favorites, watchlist, watched, addToFavorites, removeFromFavorites, addToWatchlist, addToWatched, removeFromWatchlist } = useAnimeStore();
 
   const isFavorite = favorites.some((a) => a.mal_id === anime.mal_id);
@@ -105,57 +106,40 @@ export function AnimeCard({ anime, className, onRemove }: AnimeCardProps) {
   };
 
   return (
-    <Link to={`/anime/${anime.mal_id}`} className="group block">
-      <div
-        className={cn("relative overflow-hidden rounded-lg cursor-pointer", className)}
-      >
-        <img
-          src={anime.images.webp.image_url}
-          alt={anime.title}
-          className="w-full h-auto object-cover transition-transform group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={handleFavoriteToggle}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-            >
-              <Heart className={cn("w-5 h-5", isFavorite ? "fill-red-500 stroke-red-500" : "stroke-white")} />
-            </button>
-            {!isWatched && (
-              <button
-                onClick={handleWatchlistToggle}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                <ListPlus className={cn("w-5 h-5", isWatchlisted ? "stroke-blue-400" : "stroke-white")} />
-              </button>
-            )}
-            {isWatchlisted && (
-              <button
-                onClick={handleAddToWatched}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                <CheckCircle className={cn("w-5 h-5", isWatched ? "stroke-green-400" : "stroke-white")} />
-              </button>
-            )}
-            {onRemove && (
-              <button
-                onClick={handleRemove}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                <X className="w-5 h-5 stroke-white" />
-              </button>
-            )}
-          </div>
-          <div>
-            <h3 className="text-white font-semibold text-base">{anime.title}</h3>
-            <div className="flex items-center gap-2 text-sm text-white/80">
-              <span>Score: {anime.score}</span>
-              {anime.year && <span>• {anime.year}</span>}
+    <div className="relative group rounded-lg overflow-hidden shadow-md bg-gray-50 dark:bg-[#121212]/70 text-gray-900 dark:text-gray-100 transition-all duration-200 hover:scale-105 hover:shadow-xl">
+      {showRemoveButton && onRemove && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="absolute top-2 right-2 z-10 bg-gray-900/70 hover:bg-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <X size={16} className="text-white" />
+        </button>
+      )}
+      
+      <Link to={`/anime/${anime.mal_id}`} className="block">
+        <div className="aspect-[2/3] w-full relative">
+          <img
+            src={anime.images.webp.image_url}
+            alt={anime.title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          {anime.score && (
+            <div className="absolute bottom-2 right-2 bg-black/70 text-yellow-400 px-2 py-1 rounded text-xs font-bold">
+              ★ {anime.score.toFixed(1)}
             </div>
-          </div>
+          )}
         </div>
-      </div>
-    </Link>
+        <div className="p-3">
+          <h3 className="text-sm font-medium line-clamp-2">{anime.title}</h3>
+        </div>
+      </Link>
+    </div>
   );
-}
+};
+
+export default AnimeCard;

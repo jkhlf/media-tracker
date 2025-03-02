@@ -117,12 +117,6 @@ export function Catalog() {
   
   const activeFilterCount = getActiveFilterCount();
 
-  // For debugging
-  useEffect(() => {
-    console.log('Current filters in catalog:', filters);
-    console.log('Current page:', currentPage);
-  }, [filters, currentPage]);
-
   return (
     <div className="pt-20 px-4 max-w-7xl mx-auto">
       <div className="flex mb-6">
@@ -165,7 +159,7 @@ export function Catalog() {
           ) : (
             <>
               {/* Results count */}
-              <div className="mb-4 text-gray-400">
+              <div className="mb-4 text-gray-400 ml-5">
                 <p>Showing {data?.data.length} of {data?.pagination.items.total} results</p>
                 
                 {/* Active filters summary */}
@@ -212,7 +206,7 @@ export function Catalog() {
                     <button
                       onClick={handlePrevPage}
                       disabled={currentPage === 1}
-                      className="px-3 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium
+                      className="px-3 py-2 rounded-l-md dark:bg-[#121212] text-gray-900 dark:text-gray-100 bg-gray-400 text-sm font-medium
                         disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Previous
@@ -224,8 +218,8 @@ export function Catalog() {
                         onClick={() => typeof page === 'number' && setCurrentPage(page)}
                         disabled={page === '...' || page === currentPage}
                         className={`
-                          px-3 py-2 border border-gray-700 text-sm font-medium
-                          ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-gray-800 hover:bg-gray-700'}
+                          px-3 py-2 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100 text-sm font-medium
+                          ${currentPage === page ? ' text-black dark:text-white' : 'bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100'}
                           ${typeof page !== 'number' ? 'cursor-default' : ''}
                         `}
                       >
@@ -236,7 +230,7 @@ export function Catalog() {
                     <button
                       onClick={handleNextPage}
                       disabled={currentPage === data.pagination.last_visible_page}
-                      className="px-3 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium
+                      className="px-3 py-2 rounded-r-md border bg-gray-300 dark:bg-[#121212] text-gray-900 dark:text-gray-100 text-sm font-medium
                         disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next
