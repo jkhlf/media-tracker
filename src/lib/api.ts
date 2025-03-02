@@ -215,8 +215,35 @@ export const getAnimeRecommendationsForDetails = async (id: number) => {
   return fetchData(`/anime/${id}/recommendations`);
 };
 
+// Update cache time for anime details to ensure we have fresh airing information
+const getAnimeDetailsCache = new Map();
+const ANIME_DETAILS_CACHE_TIME_MS = 3600 * 1000; // 1 hour cache for anime details
+
 export const getAnimeDetails = async (id: number) => {
-  return fetchData(`/anime/${id}/full`);
+  // Check from anime details specific cache
+  const cacheKey = `anime_details_${id}`;
+  const cachedData = getAnimeDetailsCache.get(cacheKey);
+  
+  if (cachedData) {
+    if (Date.now() < cachedData.expiry) {
+      return cachedData.data;
+    } else {
+      getAnimeDetailsCache.delete(cacheKey);
+    }
+  }
+  
+  try {
+    const result = await fetchData(`/anime/${id}/full`);
+    
+    // Store in specific cache with longer expiration
+    const expiry = Date.now() + ANIME_DETAILS_CACHE_TIME_MS;
+    getAnimeDetailsCache.set(cacheKey, { data: result, expiry });
+    
+    return result;
+  } catch (error) {
+    console.error(`Error fetching anime details for ID ${id}:`, error);
+    throw error;
+  }
 };
 
 // Add this new function for advanced filtering
@@ -235,10 +262,7 @@ export const getAnimeWithFilters = async (filters: AnimeFilters = {}) => {
   
   // Add filters to query params
   if (filters.genres && filters.genres.length > 0) {
-    // The API expects genres to be specified individually, not comma-separated
-    // For example: genres[]=1&genres[]=2 instead of genres=1,2
     filters.genres.forEach(genre => {
-      // Map genre names to their IDs (this is an approximate mapping, might need adjusting)
       const genreMap: {[key: string]: number} = {
         'Action': 1,
         'Adventure': 2,
@@ -262,7 +286,6 @@ export const getAnimeWithFilters = async (filters: AnimeFilters = {}) => {
     });
   }
   
-  // ...existing code for other filters...
   if (filters.status) {
     // Map status values to match the API's expected values
     const statusMap: {[key: string]: string} = {
@@ -295,7 +318,7 @@ export const getAnimeWithFilters = async (filters: AnimeFilters = {}) => {
     queryParams.append('page', filters.page.toString());
   }
   
-  // Always include some sorting and pagination
+  // Always include some sorting and paginations
   queryParams.append('sort', 'desc');
   queryParams.append('order_by', 'score');
   queryParams.append('limit', '24'); // Show 24 results per page

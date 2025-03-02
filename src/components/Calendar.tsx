@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { format, startOfWeek, addDays, getDay } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
-import { getSchedules } from '../lib/api';
+import { getSchedules, getAnimeDetails } from '../lib/api';
 import { useAnimeStore } from '../lib/store';
-import { CalendarIcon, Clock, Calendar as CalendarLucide, ExternalLink } from 'lucide-react';
+import { CalendarIcon, Clock, Calendar as CalendarLucide, ExternalLink, MonitorPlay, PauseCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 type CalendarView = 'releases' | 'personal';
@@ -19,13 +19,26 @@ const dayMapping: Record<number, DayFilter> = {
   6: 'saturday',
 };
 
+// New interface for anime in personal schedule
+interface PersonalCalendarAnime {
+  id: number;
+  title: string;
+  imageUrl?: string;
+  status?: string;
+  airingTime?: string;
+  airingDay?: string;
+  platforms: string[];
+  isAiring: boolean;
+}
+
 export function Calendar() {
   const [selectedView, setSelectedView] = useState<CalendarView>('releases');
   const [selectedDate] = useState<Date>(new Date());
-  const [personalSchedule, setPersonalSchedule] = useState<Record<string, string[]>>({});
+  const [personalSchedule, setPersonalSchedule] = useState<Record<string, PersonalCalendarAnime[]>>({});
   const [selectedDay, setSelectedDay] = useState<DayFilter | null>(null);
   const [showSfw, setShowSfw] = useState<boolean>(true);
   const [showKids, setShowKids] = useState<boolean>(false);
+  const [isLoadingPersonal, setIsLoadingPersonal] = useState<boolean>(false);
   
   const { watchlist } = useAnimeStore();
   
@@ -52,24 +65,104 @@ export function Calendar() {
     setSelectedDay(dayMapping[dayIndex]);
   }, []);
 
+  // Enhanced personal schedule with detailed anime information
   useEffect(() => {
-    const schedule: Record<string, string[]> = {};
-    
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    
-    watchlist.forEach(anime => {
-      const dayIndex = anime.mal_id % 7;
-      const day = days[dayIndex];
+    const loadPersonalSchedule = async () => {
+      if (watchlist.length === 0 || selectedView !== 'personal') return;
       
-      if (!schedule[day]) {
-        schedule[day] = [];
+      setIsLoadingPersonal(true);
+      
+      try {
+        const schedule: Record<string, PersonalCalendarAnime[]> = {
+          'Monday': [],
+          'Tuesday': [],
+          'Wednesday': [],
+          'Thursday': [],
+          'Friday': [],
+          'Saturday': [],
+          'Sunday': []
+        };
+        
+        // Get detailed information for each anime in watchlist
+        const animeDetailsPromises = watchlist.map(anime => 
+          getAnimeDetails(anime.mal_id)
+            .then(details => {
+              const animeData = details.data;
+              
+              // Check if anime is currently airing
+              const isAiring = animeData.status === 'Currently Airing';
+              
+              // If not currently airing, don't add to schedule
+              if (!isAiring) return null;
+              
+              // Get broadcast day and time
+              let airingDay = '';
+              let airingTime = '';
+              
+              if (animeData.broadcast?.day) {
+                airingDay = animeData.broadcast.day;
+              } else {
+                // If no broadcast info, assign to a day based on ID
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                airingDay = days[anime.mal_id % 7];
+              }
+              
+              if (animeData.broadcast?.time) {
+                airingTime = animeData.broadcast.time;
+              }
+              
+              // Get streaming platforms
+              const platforms = animeData.streaming?.map((platform: any) => platform.name) || [];
+              
+              return {
+                id: anime.mal_id,
+                title: anime.title,
+                imageUrl: anime.images?.webp?.image_url || '',
+                status: animeData.status,
+                airingTime,
+                airingDay,
+                platforms,
+                isAiring
+              };
+            })
+            .catch(() => null) // Handle errors for individual anime
+        );
+        
+        const animeDetails = await Promise.all(animeDetailsPromises);
+        
+        // Filter out null values and add to schedule
+        animeDetails
+          .filter(Boolean)
+          .forEach(anime => {
+            if (anime && anime.airingDay) {
+              // Make sure day exists in schedule
+              if (!schedule[anime.airingDay]) {
+                schedule[anime.airingDay] = [];
+              }
+              
+              schedule[anime.airingDay].push(anime);
+            }
+          });
+        
+        // Sort anime in each day by airing time
+        Object.keys(schedule).forEach(day => {
+          schedule[day].sort((a, b) => {
+            if (!a.airingTime) return 1;
+            if (!b.airingTime) return -1;
+            return a.airingTime.localeCompare(b.airingTime);
+          });
+        });
+        
+        setPersonalSchedule(schedule);
+      } catch (error) {
+        console.error("Error loading personal schedule:", error);
+      } finally {
+        setIsLoadingPersonal(false);
       }
-      
-      schedule[day].push(anime.title);
-    });
+    };
     
-    setPersonalSchedule(schedule);
-  }, [watchlist]); // Only depend on watchlist
+    loadPersonalSchedule();
+  }, [watchlist, selectedView]);
 
   const renderReleases = () => {
     if (isLoading) {
@@ -176,35 +269,102 @@ export function Calendar() {
   };
 
   const renderPersonalSchedule = () => {
+    if (isLoadingPersonal) {
+      return (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+          <p className="text-gray-400">Loading your personal schedule...</p>
+        </div>
+      );
+    }
+    
+    // Check if there are any airing anime in the schedule
+    const hasAiringAnime = Object.values(personalSchedule).some(anime => anime.length > 0);
+    
+    if (!hasAiringAnime) {
+      return (
+        <div className="text-center text-gray-400 py-8">
+          <CalendarLucide className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p>No currently airing anime in your watchlist</p>
+          <p className="mt-2 text-sm">Add some currently airing anime to your watchlist to see them here</p>
+          <div className="mt-4">
+            <Link to="/" className="text-blue-500 hover:underline">Browse anime</Link>
+          </div>
+        </div>
+      );
+    }
+    
     return (
-      <div className="space-y-4">
-        {Object.entries(personalSchedule).length > 0 ? (
-          Object.entries(personalSchedule).map(([day, animes]) => (
+      <div className="space-y-6">
+        {Object.entries(personalSchedule).map(([day, animes]) => (
+          animes.length > 0 && (
             <div key={day} className="bg-gray-800 p-4 rounded-lg">
               <h3 className="font-medium mb-3">{day}</h3>
-              <div className="space-y-2">
-                {animes.map((title, index) => (
-                  <div key={`${title}-${index}`} className="flex items-center gap-2 p-2 bg-gray-700 rounded">
-                    <Clock className="w-4 h-4 text-blue-400 shrink-0" />
-                    <span className="text-sm">{title}</span>
-                  </div>
+              <div className="space-y-3">
+                {animes.map((anime) => (
+                  <Link 
+                    to={`/anime/${anime.id}`}
+                    key={anime.id} 
+                    className="flex items-center gap-3 p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+                  >
+                    {anime.imageUrl && (
+                      <img 
+                        src={anime.imageUrl} 
+                        alt={anime.title}
+                        className="w-12 h-16 object-cover rounded"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{anime.title}</h4>
+                      
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs">
+                        {anime.airingTime && (
+                          <div className="flex items-center gap-1 text-blue-400">
+                            <Clock className="w-3 h-3" />
+                            <span>{anime.airingTime} JST</span>
+                          </div>
+                        )}
+                        
+                        {anime.status && (
+                          <div className="flex items-center gap-1 text-green-400">
+                            {anime.isAiring ? (
+                              <>
+                                <Clock className="w-3 h-3" />
+                                <span>Airing</span>
+                              </>
+                            ) : (
+                              <>
+                                <PauseCircle className="w-3 h-3" />
+                                <span>{anime.status}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {anime.platforms && anime.platforms.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {anime.platforms.map((platform, index) => (
+                            <span key={index} className="flex items-center gap-1 bg-gray-800 text-xs px-2 py-0.5 rounded">
+                              <MonitorPlay className="w-3 h-3 text-blue-400" />
+                              {platform}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
                 ))}
               </div>
             </div>
-          ))
-        ) : (
-          <div className="text-center text-gray-400 py-8">
-            <CalendarLucide className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>Add anime to your watchlist to create a personal schedule</p>
-            <p className="mt-2 text-sm">This feature assigns anime from your watchlist to days of the week</p>
-          </div>
-        )}
+          )
+        ))}
       </div>
     );
   };
 
   return (
-    <div className="p-5 bg-gray-900 rounded-lg shadow-lg">
+    <div className="p-5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100 rounded-lg shadow-lg">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <h2 className="text-xl font-semibold">Anime Calendar</h2>
         

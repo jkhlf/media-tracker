@@ -1,44 +1,43 @@
-import { Star, Medal, TrendingUp, Users } from 'lucide-react';
 import React from 'react';
+import { Star, Trophy, Users, TrendingUp } from 'lucide-react';
 
 interface AnimeStatsProps {
-  score?: number | null;
-  rank?: number | null;
-  popularity?: number | null;
-  members?: number | null;
+  score?: number;
+  rank?: number;
+  popularity?: number;
+  members?: number;
 }
 
-export function AnimeStats({ score, rank, popularity, members }: AnimeStatsProps) {
-  // Helper function to format large numbers
-  const formatNumber = (num?: number | null) => {
-    if (num === null || num === undefined) return 'N/A';
-    
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`;
-    } else if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}K`;
-    }
-    return num.toString();
-  };
-
+export const AnimeStats: React.FC<AnimeStatsProps> = ({ score, rank, popularity, members }) => {
   return (
-    <div className="flex flex-wrap gap-4 text-gray-300">
-      <div className="flex items-center gap-2">
-        <Star className="w-5 h-5 text-yellow-400" />
-        <span>{score !== null && score !== undefined ? score.toFixed(2) : 'N/A'}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Medal className="w-5 h-5 text-blue-400" />
-        <span>#{rank || 'N/A'}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <TrendingUp className="w-5 h-5 text-green-400" />
-        <span>#{popularity || 'N/A'}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Users className="w-5 h-5 text-purple-400" />
-        <span>{formatNumber(members)}</span>
-      </div>
+    <div className="flex flex-wrap gap-4 text-sm">
+      {score !== undefined && score > 0 && (
+        <div className="flex items-center gap-1 bg-gray-800/50 backdrop-blur-sm px-3 py-1.5 rounded-full">
+          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+          <span className="font-semibold">{score.toFixed(2)}</span>
+        </div>
+      )}
+      
+      {rank !== undefined && rank > 0 && (
+        <div className="flex items-center gap-1 bg-gray-800/50 backdrop-blur-sm px-3 py-1.5 rounded-full">
+          <Trophy className="w-4 h-4 text-amber-500" />
+          <span>#{rank}</span>
+        </div>
+      )}
+      
+      {popularity !== undefined && popularity > 0 && (
+        <div className="flex items-center gap-1 bg-gray-800/50 backdrop-blur-sm px-3 py-1.5 rounded-full">
+          <TrendingUp className="w-4 h-4 text-blue-500" />
+          <span>#{popularity}</span>
+        </div>
+      )}
+      
+      {members !== undefined && members > 0 && (
+        <div className="flex items-center gap-1 bg-gray-800/50 backdrop-blur-sm px-3 py-1.5 rounded-full">
+          <Users className="w-4 h-4 text-green-500" />
+          <span>{members.toLocaleString()}</span>
+        </div>
+      )}
     </div>
   );
-}
+};

@@ -29,7 +29,7 @@ export function Statistics() {
   const completionRate = (totalWatched / (totalWatched + totalWatchlist)) * 100;
 
   return (
-    <div className="space-y-10 pt-8 px-4 max-w-7xl mx-auto sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+    <div className="space-y-10 pt-8 px-4 max-w-7xl mx-auto sm:px-6 lg:px-8 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100">
       <h2 className="text-2xl font-bold mb-6">Statistics Dashboard</h2>
 
       <div className="flex flex-wrap justify-between gap-10">
