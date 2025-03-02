@@ -1,5 +1,5 @@
 import React from "react";
-import { Facebook, Instagram, Twitter, Github } from "lucide-react";
+import { Twitter, Github } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Footer() {

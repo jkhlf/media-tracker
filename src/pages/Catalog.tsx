@@ -31,10 +31,7 @@ export function Catalog() {
     staleTime: 5000,
   });
   
-  const handleFilterChange = (newFilters: AnimeFilters) => {
-    console.log('Received new filters:', newFilters); // Debug log
-    
-    // Reset to page 1 when filters change
+  const handleFilterChange = (newFilters: AnimeFilters) => {    
     setCurrentPage(1);
     setFilters({ ...newFilters, page: 1 });
   };
@@ -51,7 +48,6 @@ export function Catalog() {
     }
   };
   
-  // Generate an array of page numbers to show in pagination
   const getPageNumbers = () => {
     if (!data?.pagination) return [];
     
@@ -65,10 +61,8 @@ export function Catalog() {
         pages.push(i);
       }
     } else {
-      // Always include first page
       pages.push(1);
       
-      // Calculate range of pages to show around current page
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(lastPage - 1, currentPage + 1);
       

@@ -1,4 +1,4 @@
-import { Play, Plus, Check } from 'lucide-react';
+import { Play, Plus } from 'lucide-react';
 import { type Anime } from '../lib/store';
 import React from 'react';
 

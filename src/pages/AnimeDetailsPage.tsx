@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeftFromLine, Heart, ListChecks, Menu, ChevronDown, PlusCircle, Star, X, Play, Eye, BookmarkPlus, Check, Loader, Calendar, Clock, Users, Award, TrendingUp, Film, CalendarDays, Info, Hash, ExternalLink } from 'lucide-react';
+import { ArrowLeftFromLine, Heart, PlusCircle, Star, X, Play, Eye, BookmarkPlus, Check, Loader, Calendar, Award, TrendingUp, Film, Info, ExternalLink } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { getAnimeDetails, getAnimeRecommendationsForDetails, getAnimeCharacters, getAnimeStaff } from '../lib/api';
 import { useAnimeStore } from '../lib/store';
 import { useParams, Link } from 'react-router-dom';

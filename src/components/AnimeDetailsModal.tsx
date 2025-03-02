@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ExternalLink, Info, Play, Star, StarOff, Shuffle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAnimeDetails, getAnimeRecommendations, getAnimeRecommendationsForDetails } from '../lib/api';
+import { getAnimeDetails, getAnimeRecommendationsForDetails } from '../lib/api';
 import { useAnimeStore } from '../lib/store';
 import { AnimeStats } from './AnimeStats';
 

@@ -1,7 +1,6 @@
 import React from 'react';
-import { Heart, ListPlus, CheckCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useAnimeStore, type Anime } from '../lib/store';
-import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom'; 
 import { toast } from 'react-toastify';
 
