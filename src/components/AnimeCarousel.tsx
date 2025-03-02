@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useState } from 'react';
 import { getTopAnime } from '../lib/api';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 
-const AnimeCarousel = () => {
+const AnimeCards = () => {
     const { data: topAnime, isLoading: topLoading } = useQuery({
         queryKey: ['topAnime'],
         queryFn: () => getTopAnime(),
@@ -12,142 +11,142 @@ const AnimeCarousel = () => {
     
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
-    const timerRef = useRef<number | null>(null);
+    const maxVisible = 3;
     
-    useEffect(() => {
-        if (!topLoading && topAnime?.data.length) {
-            restartTimer();
-            return () => {
-                if (timerRef.current) clearInterval(timerRef.current);
-            };
-        }
-    }, [topAnime, topLoading]);
-
-    const restartTimer = () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-        timerRef.current = setInterval(() => {
-            if (topAnime && topAnime.data.length > 0) {
-                handleSlideChange((currentIndex + 1) % topAnime.data.length);
-            }
-        }, 7000);
-    }
-
-    const handleSlideChange = (newIndex: number) => {
-        if (isTransitioning) return;
+    const handleNext = () => {
+        if (isTransitioning || !topAnime?.data.length) return;
         
         setIsTransitioning(true);
-        setCurrentIndex(newIndex);
+        setCurrentIndex((prev) => (prev + 1) % Math.min(topAnime.data.length, 6));
         
-        // Reset transitioning state after animation completes
         setTimeout(() => {
             setIsTransitioning(false);
-        }, 700); // Match the duration in the CSS transition
+        }, 500);
+    };
+    
+    const handlePrev = () => {
+        if (isTransitioning || !topAnime?.data.length) return;
         
-        restartTimer();
-    }
+        setIsTransitioning(true);
+        setCurrentIndex((prev) => (prev - 1 + Math.min(topAnime.data.length, 6)) % Math.min(topAnime.data.length, 6));
+        
+        setTimeout(() => {
+            setIsTransitioning(false);
+        }, 500);
+    };
 
-    const goToSlide = (index: number) => handleSlideChange(index);
-    const goToNextSlide = () => {
-        if (topAnime && topAnime.data.length > 0) {
-            handleSlideChange((currentIndex + 1) % topAnime.data.length);
+    const getCardStyle = (index) => {
+        if (!topAnime?.data.length) return {};
+        
+        const count = Math.min(topAnime.data.length, 6);
+        const relativeIndex = (index - currentIndex + count) % count;
+        
+        if (relativeIndex === 0) {
+            return {
+                zIndex: 30,
+                transform: 'translateX(0%) rotate(0deg) scale(1)',
+                opacity: 1
+            };
+        } else if (relativeIndex === 1) {
+            return {
+                zIndex: 20,
+                transform: 'translateX(30%) rotate(5deg) scale(0.9)',
+                opacity: 0.9
+            };
+        } else if (relativeIndex === 2) {
+            return {
+                zIndex: 10,
+                transform: 'translateX(60%) rotate(10deg) scale(0.8)',
+                opacity: 0.7
+            };
+        } else if (relativeIndex === count - 1) {
+            return {
+                zIndex: 20,
+                transform: 'translateX(-30%) rotate(-5deg) scale(0.9)',
+                opacity: 0.9
+            };
+        } else if (relativeIndex === count - 2) {
+            return {
+                zIndex: 10,
+                transform: 'translateX(-60%) rotate(-10deg) scale(0.8)',
+                opacity: 0.7
+            };
+        } else {
+            return {
+                zIndex: 0,
+                transform: 'translateX(120%) rotate(15deg) scale(0.7)',
+                opacity: 0
+            };
         }
-    }
-    const goToPrevSlide = () => {
-        if (topAnime && topAnime.data.length > 0) {
-            handleSlideChange((currentIndex - 1 + topAnime.data.length) % topAnime.data.length);
-        }
-    }
+    };
 
     if (topLoading || !topAnime) { 
         return (
-            <div className='flex items-center justify-center h-[400px] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-xl'> 
-                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex items-center justify-center h-[500px] bg-gray-100 dark:bg-gray-800 rounded-lg"> 
+                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
 
     return (
-        <div className="relative h-[400px] overflow-hidden rounded-xl group">
-            {topAnime.data.slice(0, 6).map((anime, index) => (
-                <div
-                    key={anime.mal_id}
-                    className={cn(
-                        "absolute top-0 left-0 w-full h-full transition-all duration-700 ease-in-out",
-                        index === currentIndex ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0"
-                    )}
-                >
-                    <img
-                        src={anime.images.jpg.large_image_url}
-                        alt={anime.title}
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                    
-                    <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-end text-white p-8">
-                        <div className="w-full max-w-[80%] text-center">
-                            
-                            <h2 className={cn(
-                                "text-2xl md:text-4xl font-semibold text-center tracking-tight line-clamp-2 transition-all duration-700 delay-200",
-                                index === currentIndex ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-                            )}>
-                                {anime.title}
-                            </h2>
-                            
-                            <p className={cn(
-                                "text-lg font-light opacity-90 line-clamp-2 transition-all duration-700 delay-300 py-2",
-                                index === currentIndex ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-                            )}>
-                                {anime.year ? `${anime.year}, ` : ''} 
-                                {anime.genres?.slice(0, 1).map(g => g.name).join(' • ')}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            ))}
-            
-            {/* Navigation Arrows */}
-            <button 
-                onClick={goToPrevSlide}
-                disabled={isTransitioning}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white p-3 rounded-full opacity-0 group-hover:opacity-90 transition-all z-20 hover:bg-black/60 hover:scale-110 disabled:opacity-30"
-                aria-label="Previous slide"
-            >
-                <ChevronLeft size={20} />
-            </button>
-            
-            <button 
-                onClick={goToNextSlide}
-                disabled={isTransitioning}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white p-3 rounded-full opacity-0 group-hover:opacity-90 transition-all z-20 hover:bg-black/60 hover:scale-110 disabled:opacity-30"
-                aria-label="Next slide"
-            >
-                <ChevronRight size={20} />
-            </button>
-
-            {/* Progress Indicators */}
-            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-20">
-                {topAnime.data.slice(0, 6).map((_, idx) => (
-                    <button
-                        key={idx}
-                        onClick={() => !isTransitioning && goToSlide(idx)}
-                        disabled={isTransitioning}
-                        className={cn(
-                            "group/indicator transition-all duration-300",
-                            isTransitioning && "cursor-not-allowed"
-                        )}
-                        aria-label={`Go to slide ${idx + 1}`}
+        <div className="relative h-[500px] w-full flex items-center justify-center overflow-hiddenp-8">
+            <div className="relative w-full h-full flex items-center justify-center">
+                {topAnime.data.slice(0, 6).map((anime, index) => (
+                    <div
+                        key={anime.mal_id}
+                        className="absolute transition-all duration-500 ease-in-out cursor-pointer"
+                        style={{
+                            width: '240px',
+                            height: '350px',
+                            ...getCardStyle(index)
+                        }}
+                        onClick={() => {
+                            if ((index - currentIndex + 6) % 6 === 1) handleNext();
+                            else if ((index - currentIndex + 6) % 6 === 5) handlePrev();
+                            else if ((index - currentIndex + 6) % 6 !== 0) setCurrentIndex(index);
+                        }}
                     >
-                        <div className={cn(
-                            "h-1 w-12 rounded-full transition-all duration-500",
-                            currentIndex === idx 
-                                ? "bg-white w-16" 
-                                : "bg-white/40 group-hover/indicator:bg-white/60"
-                        )}></div>
-                    </button>
+                        <a href={`/anime/${anime.mal_id}`} className="w-full h-full rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl" style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}>
+                            <img
+                                src={anime.images.jpg.large_image_url}
+                                alt={anime.title}
+                                className="w-full h-full object-cover"
+                            />
+                        </a>
+                        
+                        {(index - currentIndex + 6) % 6 === 0 && (
+                            <div className="absolute -bottom-16 left-0 right-0 text-center">
+                                <h3 className="text-xl text-white font-medium mb-1">{anime.title}</h3>
+                                <p className="text-sm text-white/80">
+                                    {anime.year ? `${anime.year}` : ''} 
+                                    {anime.year && anime.genres?.length ? ' • ' : ''}
+                                    {anime.genres?.slice(0, 1).map(g => g.name).join('')}
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 ))}
             </div>
+            
+            <button 
+                onClick={handlePrev}
+                disabled={isTransitioning}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 text-white p-3 rounded-full hover:bg-white/20 transition-all z-40"
+                aria-label="Previous anime"
+            >
+                <ArrowLeft size={20} />
+            </button>
+            
+            <button 
+                onClick={handleNext}
+                disabled={isTransitioning}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 text-white p-3 rounded-full hover:bg-white/20 transition-all z-40"
+                aria-label="Next anime"
+            >
+                <ArrowRight size={20} />
+            </button>
         </div>
-    )
-}
+    );
+};
 
-export default AnimeCarousel;
+export default AnimeCards;

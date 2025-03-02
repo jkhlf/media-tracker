@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ExternalLink, Info, Play, Star, StarOff, Shuffle, LucideArrowDownLeftFromCircle, ArrowLeftCircle, ArrowLeftCircleIcon, ArrowLeftFromLine } from 'lucide-react';
+import { X, ExternalLink, Info, Play, Star, StarOff, Shuffle, LucideArrowDownLeftFromCircle, ArrowLeftCircle, ArrowLeftCircleIcon, ArrowLeftFromLine, Heart, ListChecks } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { getAnimeDetails, getAnimeRecommendationsForDetails } from '../lib/api';
@@ -137,8 +137,19 @@ export function AnimeDetailsPage() {
   };
 
   // --- React Query and Store Hooks ---
-  const { addToWatchlist, addToFavorites } = useAnimeStore();
+  const { 
+    addToWatchlist, 
+    removeFromWatchlist,
+    addToFavorites, 
+    removeFromFavorites,
+    favorites,
+    watchlist
+  } = useAnimeStore();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'personal' | 'watch' | 'related'>('overview');
+  
+  // Check if anime is in favorites or watchlist
+  const isInFavorites = animeId ? favorites.some(item => item.mal_id === animeId) : false;
+  const isInWatchlist = animeId ? watchlist.some(item => item.mal_id === animeId) : false;
 
   // --- Fetch Related Anime Recommendations ---
   const {
@@ -187,7 +198,7 @@ export function AnimeDetailsPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="bg-gray-900 min-h-screen text-white" // Full page background
+      className="min-h-screen bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100 " // Full page background
     >
       <div className="container mx-auto pt-12 pb-24"> {/* Container for content, added padding */}
         <div className="relative">
@@ -202,7 +213,7 @@ export function AnimeDetailsPage() {
               alt={anime.title}
               className="w-full h-full object-contain" // Changed object-contain to object-cover for hero
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50" />
+            <div className="absolute inset-0" />
             <Link to="/" className="absolute top-4 right-4 p-2 bg-gray-900/50 rounded-full hover:bg-gray-900/75 transition-colors">
             <ArrowLeftFromLine className="w-6 h-6 flex hover:text-gray-400 transition-colors" /> 
             </Link>
@@ -226,16 +237,47 @@ export function AnimeDetailsPage() {
 
               <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={() => { addToWatchlist(anime); handleAddToWatchHistory(); }}
-                  className="px-6 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  onClick={() => {
+                    if (isInWatchlist) {
+                      removeFromWatchlist(anime.mal_id);
+                    } else {
+                      addToWatchlist(anime);
+                      handleAddToWatchHistory();
+                    }
+                  }}
+                  className={`px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 ${
+                    isInWatchlist 
+                      ? 'bg-gray-700 hover:bg-red-700 text-white' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/20'
+                  }`}
                 >
-                  <Play className="w-5 h-5" /> Add to Watchlist
+                  {isInWatchlist ? (
+                    <>
+                      <X className="w-5 h-5" /> Remove from Watchlist
+                    </>
+                  ) : (
+                    <>
+                      <ListChecks className="w-5 h-5" /> Add to Watchlist
+                    </>
+                  )}
                 </button>
+                
                 <button
-                  onClick={() => addToFavorites(anime)}
-                  className="px-6 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                  onClick={() => {
+                    if (isInFavorites) {
+                      removeFromFavorites(anime.mal_id);
+                    } else {
+                      addToFavorites(anime);
+                    }
+                  }}
+                  className={`px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 ${
+                    isInFavorites 
+                      ? 'bg-pink-700 hover:bg-red-700 text-white' 
+                      : 'bg-gray-800 hover:bg-pink-700 text-white'
+                  }`}
                 >
-                  Add to Favorites
+                  <Heart className={`w-5 h-5 ${isInFavorites ? 'fill-white' : ''}`} />
+                  {isInFavorites ? 'Remove from Favorites' : 'Add to Favorites'}
                 </button>
               </div>
             </motion.div>
