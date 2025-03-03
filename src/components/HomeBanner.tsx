@@ -4,8 +4,8 @@ import { ArrowRight } from 'lucide-react';
 
 const HomeBanner: React.FC = () => {
   return (
-    <section className="rounded-lg mb-8">
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8 px-4 py-12">
+    <section className="rounded-lg">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8 ">
         {/* Left side: Content */}
         <div className="w-full md:w-1/2 space-y-6">
           <h1 className="text-3xl md:text-3xl font-bold text-gray-900 dark:text-white">

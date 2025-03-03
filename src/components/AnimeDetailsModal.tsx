@@ -8,7 +8,7 @@ import { AnimeStats } from './AnimeStats';
 
 interface AnimeDetailsModalProps { 
   animeId: number;
-  onClose: () => void; // Add onClose prop to control modal
+  onClose: () => void; 
 }
 
 interface UserAnimeData {

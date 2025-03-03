@@ -30,14 +30,12 @@ export function AnimeGrid({ items, title }: AnimeGridProps) {
     show: { opacity: 1, y: 0 },
   };
 
-  // Create a map to track duplicate IDs
   const seenIds = new Map();
   
   // Filter out duplicates or add an index to make keys unique
   const uniqueItems = items.map((anime, index) => {
     const animeId = anime.mal_id;
     if (seenIds.has(animeId)) {
-      // Create a unique key for duplicates by adding an index suffix
       const uniqueId = `${animeId}-${index}`;
       return { ...anime, uniqueKey: uniqueId };
     } else {

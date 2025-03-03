@@ -19,7 +19,6 @@ const dayMapping: Record<number, DayFilter> = {
   6: 'saturday',
 };
 
-// New interface for anime in personal schedule
 interface PersonalCalendarAnime {
   id: number;
   title: string;
@@ -65,7 +64,6 @@ export function Calendar() {
     setSelectedDay(dayMapping[dayIndex]);
   }, []);
 
-  // Enhanced personal schedule with detailed anime information
   useEffect(() => {
     const loadPersonalSchedule = async () => {
       if (watchlist.length === 0 || selectedView !== 'personal') return;
@@ -83,26 +81,21 @@ export function Calendar() {
           'Sunday': []
         };
         
-        // Get detailed information for each anime in watchlist
         const animeDetailsPromises = watchlist.map(anime => 
           getAnimeDetails(anime.mal_id)
             .then(details => {
               const animeData = details.data;
               
-              // Check if anime is currently airing
               const isAiring = animeData.status === 'Currently Airing';
               
-              // If not currently airing, don't add to schedule
               if (!isAiring) return null;
               
-              // Get broadcast day and time
               let airingDay = '';
               let airingTime = '';
               
               if (animeData.broadcast?.day) {
                 airingDay = animeData.broadcast.day;
               } else {
-                // If no broadcast info, assign to a day based on ID
                 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                 airingDay = days[anime.mal_id % 7];
               }
@@ -111,7 +104,6 @@ export function Calendar() {
                 airingTime = animeData.broadcast.time;
               }
               
-              // Get streaming platforms
               const platforms = animeData.streaming?.map((platform: any) => platform.name) || [];
               
               return {
@@ -130,12 +122,10 @@ export function Calendar() {
         
         const animeDetails = await Promise.all(animeDetailsPromises);
         
-        // Filter out null values and add to schedule
         animeDetails
           .filter(Boolean)
           .forEach(anime => {
             if (anime && anime.airingDay) {
-              // Make sure day exists in schedule
               if (!schedule[anime.airingDay]) {
                 schedule[anime.airingDay] = [];
               }

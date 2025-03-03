@@ -60,7 +60,7 @@ export function AnimeCard({ anime, onRemove, showRemoveButton, progress, totalEp
           )}
         </div>
         
-        <div className="p-2 bg-gray-900">
+        <div className="p-2 ">
           <h3 className="text-sm font-medium line-clamp-2 text-white">{anime.title}</h3>
           
           {/* Progress text */}

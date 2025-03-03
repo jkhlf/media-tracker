@@ -31,10 +31,28 @@ export function Home() {
     );
   }
 
+  const processRecommendations = () => {
+    if (!recommendations?.data) return [];
+    
+    const uniqueAnimeMap = new Map();
+    
+    recommendations.data.forEach((rec: any) => {
+      const entries = rec.entry || [];
+      entries.forEach((entry: any) => {
+        if (entry && entry.mal_id && !uniqueAnimeMap.has(entry.mal_id)) {
+          uniqueAnimeMap.set(entry.mal_id, entry);
+        }
+      });
+    });
+    
+    return Array.from(uniqueAnimeMap.values()).slice(0, 12);
+  };
+
   return (
-    <div className="space-y-10 pt-8 px-4 max-w-7xl mx-auto sm:px-6 lg:px-8s relative">
+    <div className=" px-4 max-w-7xl mx-auto sm:px-6 lg:px-8 relative">
+
       <HomeBanner />
-      
+
       {/* Chart da Temporada Atual */}
       {seasonNow && (
         <div>
@@ -57,9 +75,7 @@ export function Home() {
         <div className="mt-8">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 text-left mx-3">Recommended for You</h2>
           <AnimeGrid
-            items={recommendations.data
-              .slice(0, 10)
-              .map((rec: any) => rec.entry[0])}
+            items={processRecommendations()}
           />
         </div>
       )}
