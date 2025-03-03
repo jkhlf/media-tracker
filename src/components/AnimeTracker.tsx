@@ -9,7 +9,7 @@ interface AnimeTrackerProps {
   animeId: number;
   totalEpisodes?: number;
   onUpdate?: (currentEpisode: number) => void;
-  animeDetails?: any; // Optional anime details
+  animeDetails?: any; 
 }
 
 export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }: AnimeTrackerProps) {
@@ -22,7 +22,6 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
   const [score, setScore] = useState<number | null>(userData?.score !== undefined ? userData.score : null);
   const [showNotes, setShowNotes] = useState(false);
   
-  // Update local state if store changes from elsewhere
   useEffect(() => {
     if (userData) {
       setNotes(userData.notes || '');
@@ -30,7 +29,6 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
     }
   }, [userData]);
 
-  // Save anime metadata if available
   useEffect(() => {
     if (animeDetails && animeId) {
       updateAnimeData(animeId, {
@@ -49,10 +47,8 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
       onUpdate(currentEpisode + 1);
     }
     
-    // If we're incrementing to the last episode, show a toast
     if (totalEpisodes && currentEpisode + 1 >= totalEpisodes) {
       toast.success('Congratulations! You\'ve completed this anime!');
-      // Also ensure it's in the watched list
       if (animeDetails && !watched.some(a => a.mal_id === animeId)) {
         addToWatched(animeDetails);
       }
@@ -66,7 +62,7 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
     
     updateAnimeData(animeId, { 
       currentEpisode: currentEpisode - 1,
-      finishDate: null  // reset finish date if decrementing from completed state
+      finishDate: null  
     });
     
     if (onUpdate) {

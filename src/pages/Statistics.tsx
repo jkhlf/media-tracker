@@ -10,14 +10,12 @@ export function Statistics() {
   const { watched, watching, watchlist, favorites } = useAnimeStore();
   const { animeData } = useUserDataStore();
 
-  // Calculate total episodes watched
   const totalEpisodesWatched = useMemo(() => {
     return Object.values(animeData).reduce((total, anime) => {
       return total + (anime.currentEpisode || 0);
     }, 0);
   }, [animeData]);
 
-  // Calculate average score given by the user
   const averageScore = useMemo(() => {
     const scores = Object.values(animeData)
       .filter(anime => anime.score !== null && anime.score !== undefined);
@@ -61,7 +59,6 @@ export function Statistics() {
       .slice(0, 10); 
   }, [watching, watched, watchlist, favorites]);
 
-  // Calculate score distribution
   const scoreDistribution = useMemo(() => {
     const distribution = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(score => ({
       score: score.toString(),
@@ -78,17 +75,13 @@ export function Statistics() {
     return distribution;
   }, [animeData]);
 
-  // Calculate completion rate - FIXED
   const completionStats = useMemo(() => {
-    // Count user-tracked completion (from episode tracking)
     const completedFromTracking = Object.values(animeData).filter(
       anime => anime.totalEpisodes && anime.currentEpisode && anime.currentEpisode >= anime.totalEpisodes
     ).length;
     
-    // Count anime marked as "watched" in library
     const animeInWatched = watched.length;
     
-    // Combine the two counts (remove duplicates)
     const watchedIds = new Set(watched.map(a => a.mal_id));
     const completedFromTrackingIds = new Set(
       Object.values(animeData)
@@ -96,10 +89,8 @@ export function Statistics() {
         .map(a => a.mal_id)
     );
     
-    // Total unique completed anime
     const totalCompleted = [...watchedIds, ...completedFromTrackingIds].length;
     
-    // Total tracked anime (from both systems)
     const allTrackedIds = new Set([
       ...Object.values(animeData).map(a => a.mal_id),
       ...watched.map(a => a.mal_id),
@@ -117,21 +108,17 @@ export function Statistics() {
     };
   }, [animeData, watched, watching, watchlist]);
 
-  // Calculate watch time (estimating 24 minutes per episode)
   const totalWatchTimeHours = useMemo(() => {
     return (totalEpisodesWatched * 24) / 60;
   }, [totalEpisodesWatched]);
 
-  // Calculate most recently updated anime - FIXED
   const recentlyUpdatedAnime = useMemo(() => {
-    // Get recent updates from tracking data with valid metadata
     return Object.values(animeData)
-      .filter(anime => anime.title && anime.image) // Only include anime with title and image
+      .filter(anime => anime.title && anime.image) 
       .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())
-      .slice(0, 5); // Take top 5 most recently updated
+      .slice(0, 5); 
   }, [animeData]);
 
-  // Define colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a855f7', '#ec4899', '#f43f5e', '#14b8a6', '#06b6d4', '#3b82f6'];
 
   return (
@@ -171,7 +158,6 @@ export function Statistics() {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Status Distribution */}
         <div className="bg-gray-900 p-6 rounded-lg">
           <h2 className="text-xl font-semibold mb-4">Anime Status</h2>
           <div className="aspect-square max-h-[400px]">
@@ -198,7 +184,6 @@ export function Statistics() {
           </div>
         </div>
 
-        {/* Genre Distribution - FIXED */}
         <div className="bg-gray-900 p-6 rounded-lg">
           <h2 className="text-xl font-semibold mb-4">Top Genres</h2>
           <div className="aspect-square max-h-[400px]">
@@ -232,7 +217,6 @@ export function Statistics() {
         </div>
       </div>
 
-      {/* Score Distribution */}
       <div className="bg-gray-900 p-6 rounded-lg mb-8">
         <h2 className="text-xl font-semibold mb-4">Score Distribution</h2>
         <div className="h-[400px]">
@@ -248,9 +232,7 @@ export function Statistics() {
         </div>
       </div>
 
-      {/* Additional Statistics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Completion Rate - FIXED */}
         <div className="bg-gray-900 p-6 rounded-lg">
           <h2 className="text-xl font-semibold mb-4">Completion Rate</h2>
           <div className="flex items-center gap-4">
@@ -288,7 +270,6 @@ export function Statistics() {
           </div>
         </div>
 
-        {/* Recently Updated - FIXED */}
         <div className="bg-gray-900 p-6 rounded-lg">
           <h2 className="text-xl font-semibold mb-4">Recently Updated</h2>
           <div className="space-y-4">
@@ -321,7 +302,6 @@ export function Statistics() {
         </div>
       </div>
 
-      {/* Watch Time Analysis */}
       <div className="bg-gray-900 p-6 rounded-lg mb-8">
         <h2 className="text-xl font-semibold mb-4">Watch Time Analysis</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -368,7 +348,6 @@ export function Statistics() {
         </div>
       </div>
       
-      {/* Fan Level */}
       <div className="bg-gray-900 p-6 rounded-lg mb-8 text-center">
         <h2 className="text-xl font-semibold mb-4">Your Anime Fan Level</h2>
         

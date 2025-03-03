@@ -61,7 +61,6 @@ export const useUserDataStore = create<UserDataStore>()(
           const newEpisode = (existingData.currentEpisode || 0) + 1;
           const isCompleted = totalEpisodes && newEpisode >= totalEpisodes;
           
-          // If completed, also add to watched list in AnimeStore
           if (isCompleted) {
             const animeStore = useAnimeStore.getState();
             const animeInLists = [
@@ -124,7 +123,6 @@ export const useUserDataStore = create<UserDataStore>()(
             lastUpdated: new Date().toISOString()
           };
 
-          // If animeDetails is provided, update title and image
           let updatedData = {
             ...existingData,
             currentEpisode: totalEpisodes,
@@ -139,7 +137,6 @@ export const useUserDataStore = create<UserDataStore>()(
                                animeDetails.images?.jpg?.image_url;
           }
           
-          // Also add to watched list in AnimeStore
           const animeStore = useAnimeStore.getState();
           const animeInLists = [
             ...animeStore.watching,
@@ -161,7 +158,6 @@ export const useUserDataStore = create<UserDataStore>()(
 
       updateAnimeMetadata: (animeId, title, imageUrl) =>
         set((state) => {
-          // Only update if the anime exists in the store
           if (!state.animeData[animeId]) return state;
           
           return {
@@ -171,7 +167,7 @@ export const useUserDataStore = create<UserDataStore>()(
                 ...state.animeData[animeId],
                 title,
                 image: imageUrl,
-                lastUpdated: state.animeData[animeId].lastUpdated // Don't update lastUpdated for metadata updates
+                lastUpdated: state.animeData[animeId].lastUpdated 
               }
             }
           };
