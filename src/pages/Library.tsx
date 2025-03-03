@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAnimeStore } from '../lib/store';
+import { useUserDataStore } from '../lib/userDataStore';
 import { AnimeCard } from '../components/AnimeCard';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -25,6 +26,8 @@ export function Library() {
     createCollection,
     deleteCollection
   } = useAnimeStore();
+  
+  const { animeData } = useUserDataStore();
   
   const [selectedTab, setSelectedTab] = useState<'watching' | 'to-watch' | 'watched' | 'favorites' | 'collections'>('watching');
   const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false);
@@ -100,7 +103,15 @@ export function Library() {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {animeList.map((anime) => (
-          <AnimeCard key={anime.mal_id} anime={anime} onRemove={() => onRemove(anime)} showRemoveButton={true} />
+          <AnimeCard 
+            key={anime.mal_id} 
+            anime={anime} 
+            onRemove={() => onRemove(anime)} 
+            showRemoveButton={true} 
+            progress={animeData[anime.mal_id]?.currentEpisode}
+            totalEpisodes={animeData[anime.mal_id]?.totalEpisodes || anime.episodes}
+            userScore={animeData[anime.mal_id]?.score}
+          />
         ))}
       </div>
     );

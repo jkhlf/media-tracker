@@ -1,144 +1,86 @@
 import React from 'react';
-import { X } from 'lucide-react';
-import { useAnimeStore, type Anime } from '../lib/store';
-import { Link } from 'react-router-dom'; 
-import { toast } from 'react-toastify';
+import { Star, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Anime } from '../lib/store';
 
 interface AnimeCardProps {
   anime: Anime;
-  className?: string;
   onRemove?: () => void;
   showRemoveButton?: boolean;
+  progress?: number;
+  totalEpisodes?: number;
+  userScore?: number | null;
 }
 
-export const AnimeCard: React.FC<AnimeCardProps> = ({ anime, className, onRemove, showRemoveButton = false }) => {
-  const { favorites, watchlist, watched, addToFavorites, removeFromFavorites, addToWatchlist, addToWatched, removeFromWatchlist } = useAnimeStore();
-
-  const isFavorite = favorites.some((a) => a.mal_id === anime.mal_id);
-  const isWatchlisted = watchlist.some((a) => a.mal_id === anime.mal_id);
-  const isWatched = watched.some((a) => a.mal_id === anime.mal_id);
-
-  const handleFavoriteToggle = (e: React.MouseEvent) => {
-    e.preventDefault(); 
-    e.stopPropagation();
-    
-    if (isFavorite) {
-      removeFromFavorites(anime.mal_id);
-      toast.info(`Removed "${anime.title}" from favorites`, {
-        position: "bottom-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } else {
-      addToFavorites(anime);
-      toast.success(`Added "${anime.title}" to favorites`, {
-        position: "bottom-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    }
-  };
-
-  const handleWatchlistToggle = (e: React.MouseEvent) => {
-    e.preventDefault(); 
-    e.stopPropagation();
-    
-    if (isWatchlisted) {
-      removeFromWatchlist(anime.mal_id);
-      toast.info(`Removed "${anime.title}" from watchlist`, {
-        position: "bottom-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } else {
-      addToWatchlist(anime);
-      toast.success(`Added "${anime.title}" to watchlist`, {
-        position: "bottom-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    }
-  };
-
-  const handleAddToWatched = (e: React.MouseEvent) => {
-    e.preventDefault(); 
-    e.stopPropagation();
-    
-    addToWatched(anime);
-    toast.success(`Marked "${anime.title}" as watched`, {
-      position: "bottom-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  };
-
-  const handleRemove = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (onRemove) {
-      onRemove();
-      toast.info(`Removed "${anime.title}"`, {
-        position: "bottom-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    }
-  };
+export function AnimeCard({ anime, onRemove, showRemoveButton, progress, totalEpisodes, userScore }: AnimeCardProps) {
+  const hasProgress = progress !== undefined && progress > 0;
+  const isCompleted = progress !== undefined && totalEpisodes !== undefined && progress >= totalEpisodes;
 
   return (
-    <div className="relative group rounded-lg overflow-hidden shadow-md bg-gray-50 dark:bg-[#121212]/70 text-gray-900 dark:text-gray-100 transition-all duration-200 hover:scale-105 hover:shadow-xl">
-      {showRemoveButton && onRemove && (
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onRemove();
-          }}
-          className="absolute top-2 right-2 z-10 bg-gray-900/70 hover:bg-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <X size={16} className="text-white" />
-        </button>
-      )}
-      
-      <Link to={`/anime/${anime.mal_id}`} className="block">
-        <div className="aspect-[2/3] w-full relative">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="relative group"
+    >
+      <Link to={`/anime/${anime.mal_id}`} className="block rounded-lg overflow-hidden transition-transform duration-200 transform hover:scale-[1.02] hover:shadow-lg">
+        <div className="relative aspect-[2/3]">
           <img
-            src={anime.images.webp.image_url}
+            src={anime.images?.webp?.image_url || 'https://via.placeholder.com/225x320?text=No+Image'}
             alt={anime.title}
             className="w-full h-full object-cover"
             loading="lazy"
           />
-          {anime.score && (
-            <div className="absolute bottom-2 right-2 bg-black/70 text-yellow-400 px-2 py-1 rounded text-xs font-bold">
-              ★ {anime.score.toFixed(1)}
+
+          {/* Progress bar overlay at bottom of image */}
+          {hasProgress && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800">
+              <div 
+                className={`h-full ${isCompleted ? 'bg-green-500' : 'bg-blue-500'}`} 
+                style={{ width: `${totalEpisodes ? (progress / totalEpisodes) * 100 : 0}%` }}
+              />
+            </div>
+          )}
+
+          {/* Score overlay */}
+          {anime.score > 0 && (
+            <div className="absolute top-2 right-2 bg-black/70 rounded-md px-1.5 py-0.5 flex items-center">
+              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+              <span className="ml-1 text-xs font-medium text-white">{anime.score.toFixed(1)}</span>
+            </div>
+          )}
+
+          {/* User score overlay */}
+          {userScore && (
+            <div className="absolute top-2 left-2 bg-blue-600/80 rounded-md px-1.5 py-0.5 flex items-center">
+              <Star className="w-3 h-3 text-white fill-white" />
+              <span className="ml-1 text-xs font-medium text-white">{userScore}</span>
             </div>
           )}
         </div>
-        <div className="p-3">
-          <h3 className="text-sm font-medium line-clamp-2">{anime.title}</h3>
+        
+        <div className="p-2 bg-gray-900">
+          <h3 className="text-sm font-medium line-clamp-2 text-white">{anime.title}</h3>
+          
+          {/* Progress text */}
+          {hasProgress && (
+            <div className="mt-1 text-xs text-gray-400">
+              {progress}/{totalEpisodes || '?'} eps {isCompleted && '(Completed)'}
+            </div>
+          )}
         </div>
       </Link>
-    </div>
+      
+      {showRemoveButton && onRemove && (
+        <button
+          onClick={onRemove}
+          className="absolute -top-2 -right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+          aria-label="Remove anime"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+    </motion.div>
   );
-};
-
-export default AnimeCard;
+}
