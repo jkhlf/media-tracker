@@ -1,13 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeftFromLine, Heart, PlusCircle, Star, X, Play, Eye, BookmarkPlus, Check, Loader, Calendar, Award, TrendingUp, Film, Info, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  ArrowLeftFromLine, Heart, PlusCircle, Star, X, Play, Eye, BookmarkPlus, 
+  Check, Loader, Calendar, Award, TrendingUp, Film, Info, ExternalLink, 
+  Clock, Users, BarChart2, Tv, Video, Briefcase, Radio
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { getAnimeDetails, getAnimeRecommendationsForDetails, getAnimeCharacters, getAnimeStaff } from '../lib/api';
+import { getAnimeDetails, getAnimeRecommendationsForDetails, getAnimeCharacters, getAnimeVoices } from '../lib/api';
 import { useAnimeStore } from '../lib/store';
 import { useUserDataStore } from '../lib/userDataStore';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Dialog } from '@headlessui/react';
 import AnimeTracker from '../components/AnimeTracker';
+
+// Helper function to format date
+const formatDate = (dateString) => {
+  if (!dateString) return 'Unknown';
+  
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  try {
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  } catch (e) {
+    return dateString; // Fallback to original string if parsing fails
+  }
+};
+
+// Helper to capitalize words
+const capitalize = (string) => {
+  if (!string) return '';
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
+// Helper function to format broadcast information
+const formatBroadcast = (broadcast) => {
+  if (!broadcast || (!broadcast.day && !broadcast.time)) {
+    return 'Unknown broadcast time';
+  }
+  
+  let result = '';
+  if (broadcast.day) result += broadcast.day + 's';
+  if (broadcast.time) result += ' at ' + broadcast.time;
+  if (broadcast.timezone) result += ' (' + broadcast.timezone + ')';
+  return result;
+};
+
+// Helper function to format duration
+const formatDuration = (duration) => {
+  if (!duration) return 'Unknown';
+  return duration.replace('per ep', 'per episode');
+};
 
 function TabButton({
   children,
@@ -28,24 +69,6 @@ function TabButton({
   );
 }
 
-// Helper function to format date
-const formatDate = (dateString) => {
-  if (!dateString) return 'Unknown';
-  
-  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-  try {
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  } catch (e) {
-    return dateString; // Fallback to original string if parsing fails
-  }
-};
-
-// Helper to capitalize words
-const capitalize = (string) => {
-  if (!string) return '';
-  return string.charAt(0).toUpperCase() + string.slice(1);
-};
-
 export function AnimeDetailsPage() { 
   const { animeId: animeIdParam } = useParams();
   const animeId = animeIdParam ? parseInt(animeIdParam, 10) : null;
@@ -59,60 +82,21 @@ export function AnimeDetailsPage() {
     queryFn: () => getAnimeDetails(animeId as number),
     enabled: animeId !== null,
   });
+  
   const anime = animeDetailsData?.data;
 
-  // Get user tracking data
-  const { animeData, updateAnimeData } = useUserDataStore();
-  
-  // Set start date if this is the first time viewing this anime
-  useEffect(() => {
-    if (animeId && anime && !animeData[animeId]?.startDate) {
-      updateAnimeData(animeId, {
-        startDate: new Date().toISOString(),
-        totalEpisodes: anime.episodes || undefined
-      });
-    }
-  }, [animeId, anime, animeData, updateAnimeData]);
-
-  // Update metadata when anime details are loaded
-  useEffect(() => {
-    if (animeId && anime) {
-      // Store title and image when details load
-      updateAnimeData(animeId, {
-        title: anime.title,
-        image: anime.images?.webp?.large_image_url || anime.images?.jpg?.image_url,
-        totalEpisodes: anime.episodes || undefined
-      });
-    }
-  }, [animeId, anime]);
-
-  // User data state
+  // Always call hooks in the same order
+  // Define all states at the top of the component
+  const [selectedTab, setSelectedTab] = useState('overview');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState('');
   const [userAnimeData, setUserAnimeData] = useState<{
     episode?: number;
     notes?: string;
     rating?: number | null;
     watchHistory?: { startedAt?: string, lastWatchedAt?: string };
-  }>(() => {
-    if (animeId === null) return {};
-    const storedData = localStorage.getItem('userAnimeData');
-    if (storedData) {
-      const parsedData = JSON.parse(storedData)[animeId] || {};
-      return parsedData;
-    }
-    return {};
-  });
-
-  useEffect(() => {
-    if (animeId === null) return;
-    const storedData = JSON.parse(localStorage.getItem('userAnimeData') || '{}');
-    storedData[animeId] = userAnimeData;
-    localStorage.setItem('userAnimeData', JSON.stringify(storedData));
-  }, [userAnimeData, animeId]);
-
-  const [selectedTab, setSelectedTab] = useState('overview');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false);
-  const [newCollectionName, setNewCollectionName] = useState('');
+  }>({});
 
   // Store hooks
   const { 
@@ -134,18 +118,49 @@ export function AnimeDetailsPage() {
     removeFromCollection
   } = useAnimeStore();
   
-  // Check if anime is in various lists
-  const isInFavorites = animeId ? favorites.some(item => item.mal_id === animeId) : false;
-  const isInWatchlist = animeId ? watchlist.some(item => item.mal_id === animeId) : false;
-  const isInWatched = animeId ? watched.some(item => item.mal_id === animeId) : false;
-  const isInWatching = animeId ? watching.some(item => item.mal_id === animeId) : false;
+  // Get user tracking data
+  const { animeData, updateAnimeData } = useUserDataStore();
+
+  // Group relations by type - Always call useMemo, even if anime is undefined
+  const relationsByType = useMemo(() => {
+    if (!anime?.relations) return {};
+    
+    const grouped = {};
+    anime.relations.forEach(relation => {
+      if (!grouped[relation.relation]) {
+        grouped[relation.relation] = [];
+      }
+      grouped[relation.relation] = [...grouped[relation.relation], ...relation.entry];
+    });
+    
+    return grouped;
+  }, [anime?.relations]);
+  
+  // Check if anime is in various lists - these are now computed with useMemo
+  const isInFavorites = useMemo(() => 
+    animeId ? favorites.some(item => item.mal_id === animeId) : false
+  , [animeId, favorites]);
+  
+  const isInWatchlist = useMemo(() => 
+    animeId ? watchlist.some(item => item.mal_id === animeId) : false
+  , [animeId, watchlist]);
+  
+  const isInWatched = useMemo(() => 
+    animeId ? watched.some(item => item.mal_id === animeId) : false
+  , [animeId, watched]);
+  
+  const isInWatching = useMemo(() => 
+    animeId ? watching.some(item => item.mal_id === animeId) : false
+  , [animeId, watching]);
 
   // Check which collections contain this anime
-  const animeCollections = animeId 
-    ? collections.filter(collection => 
-        collection.animes.some(anime => anime.mal_id === animeId)
-      )
-    : [];
+  const animeCollections = useMemo(() => 
+    animeId 
+      ? collections.filter(collection => 
+          collection.animes.some(anime => anime.mal_id === animeId)
+        )
+      : []
+  , [animeId, collections]);
 
   // Lazy loaded data for different tabs
   const {
@@ -155,7 +170,7 @@ export function AnimeDetailsPage() {
   } = useQuery({
     queryKey: ['animeRecommendations', animeId],
     queryFn: () => getAnimeRecommendationsForDetails(animeId as number),
-    enabled: selectedTab === 'related' && animeId !== null,
+    enabled: selectedTab === 'recommendations' && animeId !== null,
   });
 
   const {
@@ -173,10 +188,52 @@ export function AnimeDetailsPage() {
     isLoading: isStaffLoading,
     error: staffError,
   } = useQuery({
-    queryKey: ['animeStaff', animeId],
-    queryFn: () => getAnimeStaff(animeId as number),
-    enabled: selectedTab === 'staff' && animeId !== null,
+    queryKey: ['animeVoices', animeId],
+    queryFn: () => getAnimeVoices(animeId as number),
+    enabled: selectedTab === 'voices' && animeId !== null,
   });
+
+  // Initialize user data state from localStorage
+  useEffect(() => {
+    if (animeId === null) return;
+    
+    const storedData = localStorage.getItem('userAnimeData');
+    if (storedData) {
+      const parsedData = JSON.parse(storedData)[animeId] || {};
+      setUserAnimeData(parsedData);
+    }
+  }, [animeId]);
+
+  // Update localStorage when user data changes
+  useEffect(() => {
+    if (animeId === null) return;
+    
+    const storedData = JSON.parse(localStorage.getItem('userAnimeData') || '{}');
+    storedData[animeId] = userAnimeData;
+    localStorage.setItem('userAnimeData', JSON.stringify(storedData));
+  }, [userAnimeData, animeId]);
+
+  // Set start date if this is the first time viewing this anime
+  useEffect(() => {
+    if (animeId && anime && !animeData[animeId]?.startDate) {
+      updateAnimeData(animeId, {
+        startDate: new Date().toISOString(),
+        totalEpisodes: anime.episodes || undefined
+      });
+    }
+  }, [animeId, anime, animeData, updateAnimeData]);
+
+  // Update metadata when anime details are loaded
+  useEffect(() => {
+    if (animeId && anime) {
+      // Store title and image when details load
+      updateAnimeData(animeId, {
+        title: anime.title,
+        image: anime.images?.webp?.large_image_url || anime.images?.jpg?.image_url,
+        totalEpisodes: anime.episodes || undefined
+      });
+    }
+  }, [animeId, anime, updateAnimeData]);
 
   // Event handlers for collection and lists
   const handleFavoriteToggle = () => {
@@ -298,7 +355,7 @@ export function AnimeDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#121212] text-white">
       {/* Hero Banner with background image */}
       <div 
         className="relative w-auto h-[450px] bg-cover bg-center" 
@@ -307,7 +364,7 @@ export function AnimeDetailsPage() {
           backgroundPosition: 'center 30%'
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] to-transparent" />
         
         <div className="container mx-auto h-full px-4 relative pt-8">
           <Link to="/" className="inline-block p-2 bg-black/50 rounded-full hover:bg-black/75 transition-colors">
@@ -492,22 +549,34 @@ export function AnimeDetailsPage() {
             Overview
           </TabButton>
           <TabButton
+            active={selectedTab === 'details'}
+            onClick={() => setSelectedTab('details')}
+          >
+            Details
+          </TabButton>
+          <TabButton
             active={selectedTab === 'characters'}
             onClick={() => setSelectedTab('characters')}
           >
             Characters
           </TabButton>
           <TabButton
-            active={selectedTab === 'staff'}
-            onClick={() => setSelectedTab('staff')}
+            active={selectedTab === 'voices'}
+            onClick={() => setSelectedTab('voices')}
           >
-            Staff
+            Voices
           </TabButton>
           <TabButton
             active={selectedTab === 'related'}
             onClick={() => setSelectedTab('related')}
           >
-            Recommended
+            Related
+          </TabButton>
+          <TabButton
+            active={selectedTab === 'recommendations'}
+            onClick={() => setSelectedTab('recommendations')}
+          >
+            Recommendations
           </TabButton>
         </div>
 
@@ -524,10 +593,10 @@ export function AnimeDetailsPage() {
                   </div>
                 )}
                 
-                {anime.episodes && (
+                {anime.episodes !== null && (
                   <div className="mb-4">
                     <h3 className="text-gray-400 text-sm">Episodes</h3>
-                    <p className="font-medium">{anime.episodes}</p>
+                    <p className="font-medium">{anime.episodes || 'Unknown'}</p>
                   </div>
                 )}
                 
@@ -586,12 +655,13 @@ export function AnimeDetailsPage() {
                 <AnimeTracker 
                   animeId={animeId} 
                   totalEpisodes={anime?.episodes} 
+                  animeDetails={anime}
                 />
               </div>
             )}
             
             {/* External Links */}
-            {anime.external.slice && anime.external.length > 0 && (
+            {anime.external && anime.external.length > 0 && (
               <div className="space-y-4 max-w-6xl mt-6">
                 <h3 className="text-xl font-semibold">External Links</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -633,41 +703,324 @@ export function AnimeDetailsPage() {
           </div>
         )}
 
-        {selectedTab === 'staff' && (
+        {selectedTab === 'details' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold mb-6">Staff</h2>
+            <h2 className="text-2xl font-bold mb-6">Detailed Information</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Basic Info */}
+              <div className="bg-gray-900 p-6 rounded-lg">
+                <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Basic Information</h3>
+                
+                <div className="space-y-4">
+                  {anime.type && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Type</div>
+                      <div className="w-2/3 font-medium">{anime.type}</div>
+                    </div>
+                  )}
+                  
+                  {anime.source && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Source</div>
+                      <div className="w-2/3 font-medium">{anime.source}</div>
+                    </div>
+                  )}
+                  
+                  {anime.episodes !== null && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Episodes</div>
+                      <div className="w-2/3 font-medium">{anime.episodes || 'Unknown'}</div>
+                    </div>
+                  )}
+                  
+                  {anime.duration && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Duration</div>
+                      <div className="w-2/3 font-medium">{formatDuration(anime.duration)}</div>
+                    </div>
+                  )}
+                  
+                  {anime.rating && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Rating</div>
+                      <div className="w-2/3 font-medium">{anime.rating}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Stats */}
+              <div className="bg-gray-900 p-6 rounded-lg">
+                <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Statistics</h3>
+                
+                <div className="space-y-4">
+                  {anime.score !== null && (
+                    <div className="flex items-center">
+                      <div className="w-1/3 text-gray-400">Score</div>
+                      <div className="w-2/3 font-medium flex items-center">
+                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 mr-1" />
+                        {anime.score} 
+                        <span className="text-sm text-gray-400 ml-1">
+                          ({anime.scored_by ? new Intl.NumberFormat().format(anime.scored_by) : '?'} users)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {anime.rank && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Rank</div>
+                      <div className="w-2/3 font-medium flex items-center">
+                        <Award className="w-4 h-4 text-purple-400 mr-1" />
+                        #{anime.rank}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {anime.popularity && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Popularity</div>
+                      <div className="w-2/3 font-medium flex items-center">
+                        <TrendingUp className="w-4 h-4 text-green-400 mr-1" />
+                        #{anime.popularity}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {anime.members && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Members</div>
+                      <div className="w-2/3 font-medium flex items-center">
+                        <Users className="w-4 h-4 text-blue-400 mr-1" />
+                        {new Intl.NumberFormat().format(anime.members)}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {anime.favorites && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Favorites</div>
+                      <div className="w-2/3 font-medium flex items-center">
+                        <Heart className="w-4 h-4 text-red-400 mr-1" />
+                        {new Intl.NumberFormat().format(anime.favorites)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Broadcast & Season */}
+            <div className="bg-gray-900 p-6 rounded-lg">
+              <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Broadcast Information</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  {anime.status && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Status</div>
+                      <div className="w-2/3 font-medium">{anime.status}</div>
+                    </div>
+                  )}
+                  
+                  {anime.aired && (anime.aired.from || anime.aired.to) && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Aired</div>
+                      <div className="w-2/3 font-medium">
+                        {anime.aired.from ? formatDate(anime.aired.from) : '?'} 
+                        {anime.aired.to ? ` to ${formatDate(anime.aired.to)}` : anime.aired.from ? ' (ongoing)' : ''}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {anime.season && anime.year && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Season</div>
+                      <div className="w-2/3 font-medium">
+                        {capitalize(anime.season)} {anime.year}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-4">
+                  {anime.broadcast && (anime.broadcast.day || anime.broadcast.time) && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Broadcast</div>
+                      <div className="w-2/3 font-medium flex items-center">
+                        <Radio className="w-4 h-4 text-blue-400 mr-2" />
+                        {formatBroadcast(anime.broadcast)}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {anime.producers && anime.producers.length > 0 && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Producers</div>
+                      <div className="w-2/3 font-medium">
+                        {anime.producers.map(producer => producer.name).join(', ')}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {anime.licensors && anime.licensors.length > 0 && (
+                    <div className="flex">
+                      <div className="w-1/3 text-gray-400">Licensors</div>
+                      <div className="w-2/3 font-medium">
+                        {anime.licensors.map(licensor => licensor.name).join(', ')}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Classification Categories */}
+            <div className="bg-gray-900 p-6 rounded-lg">
+              <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Classification</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6">
+                {anime.genres && anime.genres.length > 0 && (
+                  <div>
+                    <h4 className="text-gray-400 mb-2">Genres</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {anime.genres.map(genre => (
+                        <span 
+                          key={genre.mal_id}
+                          className="px-3 py-1 bg-blue-900/50 text-sm rounded-full"
+                        >
+                          {genre.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {anime.themes && anime.themes.length > 0 && (
+                  <div>
+                    <h4 className="text-gray-400 mb-2">Themes</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {anime.themes.map(theme => (
+                        <span 
+                          key={theme.mal_id}
+                          className="px-3 py-1 bg-purple-900/50 text-sm rounded-full"
+                        >
+                          {theme.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {anime.demographics && anime.demographics.length > 0 && (
+                  <div className="md:col-span-2 mt-2">
+                    <h4 className="text-gray-400 mb-2">Demographics</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {anime.demographics.map(demographic => (
+                        <span 
+                          key={demographic.mal_id}
+                          className="px-3 py-1 bg-green-900/50 text-sm rounded-full"
+                        >
+                          {demographic.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Background */}
+            {anime.background && (
+              <div className="bg-gray-900 p-6 rounded-lg">
+                <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Background</h3>
+                <p className="text-gray-300 leading-relaxed whitespace-pre-line">{anime.background}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {selectedTab === 'voices' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-6">Voice Actors</h2>
             {isStaffLoading ? (
               <div className="flex justify-center items-center h-40">
                 <Loader className="w-8 h-8 animate-spin text-blue-500" />
               </div>
             ) : staffError ? (
-              <div className="text-red-500 text-center">Failed to load staff information.</div>
+              <div className="text-red-500 text-center">Failed to load voice actor information.</div>
             ) : staffData?.data && staffData.data.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {staffData.data.map((staffMember) => (
-                  <div key={`${staffMember.person.mal_id}-${staffMember.position}`} className="bg-gray-900 rounded-lg overflow-hidden flex flex-col">
-                    <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {staffData.data.map((voiceActor) => (
+                  <div key={`${voiceActor.person.mal_id}`} className="bg-gray-900 rounded-lg overflow-hidden flex">
+                    <div className="w-20 h-20 bg-gray-800 overflow-hidden">
                       <img 
-                        src={staffMember.person.images?.jpg?.image_url || `https://via.placeholder.com/150x225?text=${encodeURIComponent(staffMember.person.name)}`}
-                        alt={staffMember.person.name}
+                        src={voiceActor.person.images?.jpg?.image_url || `https://via.placeholder.com/80?text=${encodeURIComponent(voiceActor.person.name.charAt(0))}`}
+                        alt={voiceActor.person.name}
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />
                     </div>
-                    <div className="p-3 flex flex-col flex-grow">
-                      <h3 className="font-medium line-clamp-1">{staffMember.person.name}</h3>
-                      <p className="text-sm text-gray-400 line-clamp-2">{staffMember.positions.join(', ')}</p>
+                    <div className="p-4 flex flex-col justify-center">
+                      <h3 className="font-medium text-white">{voiceActor.person.name}</h3>
+                      <p className="text-sm text-gray-400">
+                        {voiceActor.language ? `${voiceActor.language} Voice` : 'Voice Actor'}
+                      </p>
+                      {voiceActor.character && (
+                        <p className="text-xs text-blue-400 mt-1">
+                          Character: {voiceActor.character.name}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-gray-400 text-center">No staff information available.</div>
+              <div className="text-gray-400 text-center">No voice actor information available.</div>
             )}
           </div>
         )}
 
         {selectedTab === 'related' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-6">Related Anime</h2>
+            
+            {anime?.relations && Object.keys(relationsByType).length > 0 ? (
+              Object.entries(relationsByType).map(([relationType, entries]) => (
+                <div key={relationType} className="mb-8">
+                  <h3 className="text-xl font-medium mb-4">{relationType}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {(entries as any[]).map((entry) => (
+                      <div key={entry.mal_id} className="bg-gray-900 rounded-lg overflow-hidden flex flex-col">
+                        <div className="p-4">
+                          <h4 className="font-medium">
+                            {entry.type === 'anime' ? (
+                              <Link 
+                                to={`/anime/${entry.mal_id}`}
+                                className="text-blue-400 hover:text-blue-300"
+                              >
+                                {entry.name}
+                              </Link>
+                            ) : (
+                              <span>{entry.name}</span>
+                            )}
+                          </h4>
+                          <p className="text-sm text-gray-400">{entry.type}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              
+              ))
+            ) : (
+              <div className="text-gray-400 text-center">No related anime information available.</div>
+            )}
+          </div>
+        )}
+
+        {selectedTab === 'recommendations' && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold mb-6">Recommendations</h2>
             {isRecommendationsLoading ? (
@@ -714,20 +1067,6 @@ export function AnimeDetailsPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold mb-4">Characters</h2>
             <p className="text-gray-400">Character information is not available in the current API response.</p>
-          </div>
-        )}
-
-        {selectedTab === 'relations' && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold mb-4">Relations</h2>
-            <p className="text-gray-400">Relation information is not available in the current API response.</p>
-          </div>
-        )}
-
-        {selectedTab === 'reviews' && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold mb-4">Reviews</h2>
-            <p className="text-gray-400">Review information is not available in the current API response.</p>
           </div>
         )}
       </div>

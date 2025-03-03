@@ -334,6 +334,6 @@ export const getAnimeCharacters = async (id: number) => {
   return fetchData(`/characters/${id}/anime`);
 }
 
-export const getAnimeStaff = async (id: number) => {
-  return fetchData(`/anime/${id}/staff`);
+export const getAnimeVoices = async (id: number) => {
+  return fetchData(`/characters/${id}/voices`);
 }
