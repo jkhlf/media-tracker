@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ArrowLeftFromLine, Heart, PlusCircle, Star, X, Play, Eye, BookmarkPlus, 
-  Check, Loader, Calendar, Award, TrendingUp, Film, Info, ExternalLink, 
-  Clock, Users, BarChart2, Tv, Video, Briefcase, Radio
+  Check, Loader, Award, TrendingUp, ExternalLink, Users, Radio
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getAnimeDetails, getAnimeRecommendationsForDetails, getAnimeCharacters, getAnimeVoices } from '../lib/api';
@@ -10,10 +9,9 @@ import { useAnimeStore } from '../lib/store';
 import { useUserDataStore } from '../lib/userDataStore';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Dialog } from '@headlessui/react';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import AnimeTracker from '../components/AnimeTracker';
 
-// Helper function to format date
 const formatDate = (dateString) => {
   if (!dateString) return 'Unknown';
   
@@ -21,17 +19,15 @@ const formatDate = (dateString) => {
   try {
     return new Date(dateString).toLocaleDateString(undefined, options);
   } catch (e) {
-    return dateString; // Fallback to original string if parsing fails
+    return dateString; 
   }
 };
 
-// Helper to capitalize words
 const capitalize = (string) => {
   if (!string) return '';
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
-// Helper function to format broadcast information
 const formatBroadcast = (broadcast) => {
   if (!broadcast || (!broadcast.day && !broadcast.time)) {
     return 'Unknown broadcast time';
@@ -44,7 +40,6 @@ const formatBroadcast = (broadcast) => {
   return result;
 };
 
-// Helper function to format duration
 const formatDuration = (duration) => {
   if (!duration) return 'Unknown';
   return duration.replace('per ep', 'per episode');
@@ -60,8 +55,8 @@ function TabButton({
       onClick={onClick}
       className={`pb-4 relative px-6 ${
         active 
-          ? 'text-white border-b-2 border-blue-500 font-medium' 
-          : 'text-gray-400 hover:text-gray-300'
+          ? ' border-b-2 border-blue-500 font-medium' 
+          : 'text-gray-500 hover:text-gray-300'
       }`}
     >
       {children}
@@ -73,7 +68,6 @@ export function AnimeDetailsPage() {
   const { animeId: animeIdParam } = useParams();
   const animeId = animeIdParam ? parseInt(animeIdParam, 10) : null;
 
-  // Primary anime details query
   const { 
     data: animeDetailsData, 
     isLoading 
@@ -85,8 +79,6 @@ export function AnimeDetailsPage() {
   
   const anime = animeDetailsData?.data;
 
-  // Always call hooks in the same order
-  // Define all states at the top of the component
   const [selectedTab, setSelectedTab] = useState('overview');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false);
@@ -98,7 +90,6 @@ export function AnimeDetailsPage() {
     watchHistory?: { startedAt?: string, lastWatchedAt?: string };
   }>({});
 
-  // Store hooks
   const { 
     addToWatchlist, 
     removeFromWatchlist,
@@ -118,10 +109,8 @@ export function AnimeDetailsPage() {
     removeFromCollection
   } = useAnimeStore();
   
-  // Get user tracking data
   const { animeData, updateAnimeData } = useUserDataStore();
 
-  // Group relations by type - Always call useMemo, even if anime is undefined
   const relationsByType = useMemo(() => {
     if (!anime?.relations) return {};
     
@@ -136,7 +125,6 @@ export function AnimeDetailsPage() {
     return grouped;
   }, [anime?.relations]);
   
-  // Check if anime is in various lists - these are now computed with useMemo
   const isInFavorites = useMemo(() => 
     animeId ? favorites.some(item => item.mal_id === animeId) : false
   , [animeId, favorites]);
@@ -153,7 +141,6 @@ export function AnimeDetailsPage() {
     animeId ? watching.some(item => item.mal_id === animeId) : false
   , [animeId, watching]);
 
-  // Check which collections contain this anime
   const animeCollections = useMemo(() => 
     animeId 
       ? collections.filter(collection => 
@@ -204,7 +191,6 @@ export function AnimeDetailsPage() {
     }
   }, [animeId]);
 
-  // Update localStorage when user data changes
   useEffect(() => {
     if (animeId === null) return;
     
@@ -213,7 +199,6 @@ export function AnimeDetailsPage() {
     localStorage.setItem('userAnimeData', JSON.stringify(storedData));
   }, [userAnimeData, animeId]);
 
-  // Set start date if this is the first time viewing this anime
   useEffect(() => {
     if (animeId && anime && !animeData[animeId]?.startDate) {
       updateAnimeData(animeId, {
@@ -223,10 +208,8 @@ export function AnimeDetailsPage() {
     }
   }, [animeId, anime, animeData, updateAnimeData]);
 
-  // Update metadata when anime details are loaded
   useEffect(() => {
     if (animeId && anime) {
-      // Store title and image when details load
       updateAnimeData(animeId, {
         title: anime.title,
         image: anime.images?.webp?.large_image_url || anime.images?.jpg?.image_url,
@@ -235,7 +218,6 @@ export function AnimeDetailsPage() {
     }
   }, [animeId, anime, updateAnimeData]);
 
-  // Event handlers for collection and lists
   const handleFavoriteToggle = () => {
     if (!anime) return;
     
@@ -331,7 +313,7 @@ export function AnimeDetailsPage() {
   // Loading state
   if (isLoading || animeId === null) {
     return (
-      <div className="bg-black min-h-screen text-white flex items-center justify-center">
+      <div className="min-h-screen  flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader className="w-10 h-10 animate-spin text-blue-500" />
           <p>Loading anime details...</p>
@@ -343,8 +325,8 @@ export function AnimeDetailsPage() {
   // Error state
   if (!anime) {
     return (
-      <div className="bg-black min-h-screen text-white flex items-center justify-center">
-        <div className="text-gray-400 text-center">
+      <div className="min-h-screen  flex items-center justify-center">
+        <div className="text-gray-500 text-center">
           <p>No details available for this anime.</p>
           <Link to="/" className="mt-4 px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors inline-block">
             Go Back to Home
@@ -355,7 +337,7 @@ export function AnimeDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#121212] text-white">
+    <div className="min-h-screen">
       {/* Hero Banner with background image */}
       <div 
         className="relative w-auto h-[450px] bg-cover bg-center" 
@@ -364,11 +346,11 @@ export function AnimeDetailsPage() {
           backgroundPosition: 'center 30%'
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
         
         <div className="container mx-auto h-full px-4 relative pt-8">
-          <Link to="/" className="inline-block p-2 bg-black/50 rounded-full hover:bg-black/75 transition-colors">
-            <ArrowLeftFromLine className="w-6 h-6 text-white" /> 
+          <Link to="/" className="inline-block p-2 50 rounded-full hover:75 transition-colors">
+            <ArrowLeftFromLine className="w-6 h-6 " /> 
           </Link>
           
           {/* Watch Trailer Button */}
@@ -400,7 +382,7 @@ export function AnimeDetailsPage() {
             <div className="pt-20">
               <h1 className="text-3xl font-bold mb-2">{anime.title}</h1>
               {anime.title_english && anime.title_english !== anime.title && (
-                <h2 className="text-xl text-gray-400 mb-2">{anime.title_english}</h2>
+                <h2 className="text-xl text-gray-500 mb-2">{anime.title_english}</h2>
               )}
               
               <div className="flex items-center gap-6 mb-6">
@@ -408,7 +390,7 @@ export function AnimeDetailsPage() {
                   <div className="flex items-center gap-1">
                     <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
                     <span className="text-xl font-medium">{anime.score}</span>
-                    <span className="text-sm text-gray-400">
+                    <span className="text-sm text-gray-500">
                       ({anime.scored_by ? new Intl.NumberFormat().format(anime.scored_by) : '?'} users)
                     </span>
                   </div>
@@ -434,7 +416,7 @@ export function AnimeDetailsPage() {
                 <button
                   onClick={handleWatchingToggle}
                   className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                    isInWatching ? 'bg-purple-700' : 'bg-gray-800 hover:bg-gray-700'
+                    isInWatching ? 'bg-purple-700' : ' hover:bg-gray-400'
                   } transition-colors`}
                 >
                   <Eye className="w-4 h-4" /> 
@@ -444,7 +426,7 @@ export function AnimeDetailsPage() {
                 <button
                   onClick={handleWatchlistToggle}
                   className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                    isInWatchlist ? 'bg-blue-700' : 'bg-gray-800 hover:bg-gray-700'
+                    isInWatchlist ? 'bg-blue-700' : ' hover:bg-gray-400'
                   } transition-colors`}
                 >
                   <BookmarkPlus className="w-4 h-4" /> 
@@ -454,7 +436,7 @@ export function AnimeDetailsPage() {
                 <button
                   onClick={handleWatchedToggle}
                   className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                    isInWatched ? 'bg-green-700' : 'bg-gray-800 hover:bg-gray-700'
+                    isInWatched ? 'bg-green-700' : ' hover:bg-gray-400'
                   } transition-colors`}
                 >
                   <Check className="w-4 h-4" /> 
@@ -464,7 +446,7 @@ export function AnimeDetailsPage() {
                 <button
                   onClick={handleFavoriteToggle}
                   className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                    isInFavorites ? 'bg-red-700' : 'bg-gray-800 hover:bg-gray-700'
+                    isInFavorites ? 'bg-red-700' : ' hover:bg-gray-50'
                   } transition-colors`}
                 >
                   <Heart className={`w-4 h-4 ${isInFavorites ? 'fill-white' : ''}`} /> 
@@ -474,17 +456,17 @@ export function AnimeDetailsPage() {
                 <div className="relative">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="px-4 py-2 rounded-md flex items-center gap-2 bg-gray-800 hover:bg-gray-700 transition-colors"
+                    className="px-4 py-2 rounded-md flex items-center gap-2  hover:bg-gray-400 transition-colors"
                   >
                     <PlusCircle className="w-4 h-4" /> Add to Collection
                   </button>
                   
                   {isDropdownOpen && (
-                    <div className="absolute left-0 mt-2 bg-gray-800 rounded-md shadow-lg overflow-hidden z-10 w-64 max-h-60 overflow-y-auto">
+                    <div className="absolute left-0 mt-2  rounded-md shadow-lg overflow-hidden z-10 w-64 max-h-60 overflow-y-auto">
                       <div className="p-2">
                         <button
                           onClick={() => setIsCreateCollectionOpen(true)}
-                          className="w-full py-2 px-3 text-left rounded-md text-white hover:bg-gray-700 flex items-center gap-2"
+                          className="w-full py-2 px-3 text-left rounded-md  hover:bg-gray-400 flex items-center gap-2"
                         >
                           <PlusCircle size={16} />
                           Create new collection
@@ -493,15 +475,15 @@ export function AnimeDetailsPage() {
                         {/* If the anime is in any collections, show them with option to remove */}
                         {animeCollections.length > 0 && (
                           <>
-                            <div className="h-px bg-gray-700 my-2"></div>
-                            <p className="px-3 py-1 text-xs text-gray-400">In collections:</p>
+                            <div className="h-px my-2"></div>
+                            <p className="px-3 py-1 text-xs text-gray-500">In collections:</p>
                             
                             {animeCollections.map((collection) => (
-                              <div key={collection.name} className="flex items-center justify-between py-1 px-3 hover:bg-gray-700 rounded-md">
+                              <div key={collection.name} className="flex items-center justify-between py-1 px-3 hover:bg-gray-400 rounded-md">
                                 <span className="text-sm text-gray-300">{collection.name}</span>
                                 <button
                                   onClick={() => handleRemoveFromCollection(collection.name)}
-                                  className="p-1 text-gray-400 hover:text-red-500"
+                                  className="p-1 text-gray-500 hover:text-red-500"
                                   title={`Remove from ${collection.name}`}
                                 >
                                   <X size={14} />
@@ -513,8 +495,8 @@ export function AnimeDetailsPage() {
                         
                         {collections.filter(c => !animeCollections.some(ac => ac.name === c.name)).length > 0 && (
                           <>
-                            <div className="h-px bg-gray-700 my-2"></div>
-                            <p className="px-3 py-1 text-xs text-gray-400">Add to collection:</p>
+                            <div className="h-px my-2"></div>
+                            <p className="px-3 py-1 text-xs text-gray-500">Add to collection:</p>
                             
                             {collections
                               .filter(c => !animeCollections.some(ac => ac.name === c.name))
@@ -522,7 +504,7 @@ export function AnimeDetailsPage() {
                                 <button
                                   key={collection.name}
                                   onClick={() => handleAddToCollection(collection.name)}
-                                  className="w-full py-2 px-3 text-left rounded-md text-white hover:bg-gray-700"
+                                  className="w-full py-2 px-3 text-left rounded-md  hover:bg-gray-400"
                                 >
                                   {collection.name}
                                 </button>
@@ -547,12 +529,6 @@ export function AnimeDetailsPage() {
             onClick={() => setSelectedTab('overview')}
           >
             Overview
-          </TabButton>
-          <TabButton
-            active={selectedTab === 'details'}
-            onClick={() => setSelectedTab('details')}
-          >
-            Details
           </TabButton>
           <TabButton
             active={selectedTab === 'characters'}
@@ -581,71 +557,95 @@ export function AnimeDetailsPage() {
         </div>
 
       {/* Tab Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="mx-auto">
         {selectedTab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              <div className="md:col-span-1 bg-gray-900 p-6 rounded-lg">
+                <div className="md:col-span-1 p-6 rounded-lg">
                 {anime.type && (
                   <div className="mb-4">
-                    <h3 className="text-gray-400 text-sm">Type</h3>
-                    <p className="font-medium">{anime.type}</p>
+                  <h3 className="text-gray-500 text-sm">Type</h3>
+                  <p className="font-medium">{anime.type}</p>
                   </div>
                 )}
                 
                 {anime.episodes !== null && (
                   <div className="mb-4">
-                    <h3 className="text-gray-400 text-sm">Episodes</h3>
-                    <p className="font-medium">{anime.episodes || 'Unknown'}</p>
+                  <h3 className="text-gray-500 text-sm">Episodes</h3>
+                  <p className="font-medium">{anime.episodes || 'Unknown'}</p>
+                  </div>
+                )}
+
+                {anime.duration && (
+                  <div className="mb-4">
+                    <div className="text-sm text-gray-500">Duration</div>
+                    <div className=" font-medium">{formatDuration(anime.duration)}</div>
                   </div>
                 )}
                 
                 {anime.status && (
                   <div className="mb-4">
-                    <h3 className="text-gray-400 text-sm">Status</h3>
-                    <p className="font-medium">{anime.status}</p>
+                  <h3 className="text-gray-500 text-sm">Status</h3>
+                  <p className="font-medium">{anime.status}</p>
                   </div>
                 )}
                 
                 {anime.aired && anime.aired.from && (
                   <div className="mb-4">
-                    <h3 className="text-gray-400 text-sm">Aired</h3>
-                    <p className="font-medium">{formatDate(anime.aired.from)}</p>
+                  <h3 className="text-gray-500 text-sm">Aired</h3>
+                  <p className="font-medium">{formatDate(anime.aired.from)}</p>
                   </div>
                 )}
                 
                 {anime.season && anime.year && (
                   <div className="mb-4">
-                    <h3 className="text-gray-400 text-sm">Season</h3>
-                    <p className="font-medium">{capitalize(anime.season)} {anime.year}</p>
+                  <h3 className="text-gray-500 text-sm">Season</h3>
+                  <p className="font-medium">{capitalize(anime.season)} {anime.year}</p>
                   </div>
                 )}
                 
                 {anime.studios && anime.studios.length > 0 && (
                   <div className="mb-4">
-                    <h3 className="text-gray-400 text-sm">Studio</h3>
-                    <p className="font-medium">{anime.studios[0].name}</p>
+                  <h3 className="text-gray-500 text-sm">Studio</h3>
+                  <p className="font-medium">{anime.studios[0].name}</p>
                   </div>
                 )}
-                
+
+                {anime.broadcast && (anime.broadcast.day || anime.broadcast.time) && (
+                  <div className="mb-4">
+                  <div className="text-sm text-gray-500">Broadcast</div>
+                  <div className="font-medium flex items-center">
+                    {formatBroadcast(anime.broadcast)}
+                  </div>
+                  </div>
+                )}
+
                 <div className="mt-2">
-                  <h3 className="text-gray-400 text-sm mb-2">Genres</h3>
+                  <h3 className="text-gray-500 text-sm mb-2">Genres</h3>
                   <div className="flex flex-wrap gap-2">
-                    {anime.genres && anime.genres.map(genre => (
-                      <span 
-                        key={genre.mal_id}
-                        className="px-3 py-1 bg-gray-800 text-sm rounded-full"
-                      >
-                        {genre.name}
-                      </span>
-                    ))}
+                  {anime.genres && anime.genres.map(genre => (
+                    <span 
+                    key={genre.mal_id}
+                    className="px-3 py-1 text-sm"
+                    >
+                    {genre.name}
+                    </span>
+                  ))}
+                  {anime.demographics && anime.demographics.map(demographic => (
+                    <span 
+                    key={demographic.mal_id}
+                    className="px-3 py-1  text-sm"
+                    >
+                    {demographic.name}
+                    </span>
+                  ))}
                   </div>
                 </div>
-              </div>
+                </div>
               
-              <div className="md:col-span-2 bg-gray-900 p-6 rounded-lg">
-                <h3 className="text-gray-400 text-sm mb-2">Synopsis</h3>
-                <p className="text-gray-300 leading-relaxed">{anime.synopsis}</p>
+              <div className="md:col-span-2 p-6 rounded-lg">
+                <h3 className="text-sm mb-2">Synopsis</h3>
+                <p className="leading-relaxed">{anime.synopsis}</p>
               </div>
             </div>
             
@@ -671,7 +671,7 @@ export function AnimeDetailsPage() {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-3 bg-gray-800 rounded-md hover:bg-gray-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-3 hover:bg-gray-500 transition-colors"
                     >
                       <span>{link.name}</span>
                       <ExternalLink className="w-4 h-4" />
@@ -692,7 +692,7 @@ export function AnimeDetailsPage() {
                       href={service.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-3 bg-gray-800 rounded-md hover:bg-gray-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-3  rounded-md hover:bg-gray-500 transition-colors"
                     >
                       <span>{service.name}</span>
                     </a>
@@ -703,247 +703,9 @@ export function AnimeDetailsPage() {
           </div>
         )}
 
-        {selectedTab === 'details' && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold mb-6">Detailed Information</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Basic Info */}
-              <div className="bg-gray-900 p-6 rounded-lg">
-                <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Basic Information</h3>
-                
-                <div className="space-y-4">
-                  {anime.type && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Type</div>
-                      <div className="w-2/3 font-medium">{anime.type}</div>
-                    </div>
-                  )}
-                  
-                  {anime.source && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Source</div>
-                      <div className="w-2/3 font-medium">{anime.source}</div>
-                    </div>
-                  )}
-                  
-                  {anime.episodes !== null && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Episodes</div>
-                      <div className="w-2/3 font-medium">{anime.episodes || 'Unknown'}</div>
-                    </div>
-                  )}
-                  
-                  {anime.duration && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Duration</div>
-                      <div className="w-2/3 font-medium">{formatDuration(anime.duration)}</div>
-                    </div>
-                  )}
-                  
-                  {anime.rating && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Rating</div>
-                      <div className="w-2/3 font-medium">{anime.rating}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Stats */}
-              <div className="bg-gray-900 p-6 rounded-lg">
-                <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Statistics</h3>
-                
-                <div className="space-y-4">
-                  {anime.score !== null && (
-                    <div className="flex items-center">
-                      <div className="w-1/3 text-gray-400">Score</div>
-                      <div className="w-2/3 font-medium flex items-center">
-                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 mr-1" />
-                        {anime.score} 
-                        <span className="text-sm text-gray-400 ml-1">
-                          ({anime.scored_by ? new Intl.NumberFormat().format(anime.scored_by) : '?'} users)
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {anime.rank && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Rank</div>
-                      <div className="w-2/3 font-medium flex items-center">
-                        <Award className="w-4 h-4 text-purple-400 mr-1" />
-                        #{anime.rank}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {anime.popularity && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Popularity</div>
-                      <div className="w-2/3 font-medium flex items-center">
-                        <TrendingUp className="w-4 h-4 text-green-400 mr-1" />
-                        #{anime.popularity}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {anime.members && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Members</div>
-                      <div className="w-2/3 font-medium flex items-center">
-                        <Users className="w-4 h-4 text-blue-400 mr-1" />
-                        {new Intl.NumberFormat().format(anime.members)}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {anime.favorites && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Favorites</div>
-                      <div className="w-2/3 font-medium flex items-center">
-                        <Heart className="w-4 h-4 text-red-400 mr-1" />
-                        {new Intl.NumberFormat().format(anime.favorites)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Broadcast & Season */}
-            <div className="bg-gray-900 p-6 rounded-lg">
-              <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Broadcast Information</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  {anime.status && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Status</div>
-                      <div className="w-2/3 font-medium">{anime.status}</div>
-                    </div>
-                  )}
-                  
-                  {anime.aired && (anime.aired.from || anime.aired.to) && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Aired</div>
-                      <div className="w-2/3 font-medium">
-                        {anime.aired.from ? formatDate(anime.aired.from) : '?'} 
-                        {anime.aired.to ? ` to ${formatDate(anime.aired.to)}` : anime.aired.from ? ' (ongoing)' : ''}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {anime.season && anime.year && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Season</div>
-                      <div className="w-2/3 font-medium">
-                        {capitalize(anime.season)} {anime.year}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="space-y-4">
-                  {anime.broadcast && (anime.broadcast.day || anime.broadcast.time) && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Broadcast</div>
-                      <div className="w-2/3 font-medium flex items-center">
-                        <Radio className="w-4 h-4 text-blue-400 mr-2" />
-                        {formatBroadcast(anime.broadcast)}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {anime.producers && anime.producers.length > 0 && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Producers</div>
-                      <div className="w-2/3 font-medium">
-                        {anime.producers.map(producer => producer.name).join(', ')}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {anime.licensors && anime.licensors.length > 0 && (
-                    <div className="flex">
-                      <div className="w-1/3 text-gray-400">Licensors</div>
-                      <div className="w-2/3 font-medium">
-                        {anime.licensors.map(licensor => licensor.name).join(', ')}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Classification Categories */}
-            <div className="bg-gray-900 p-6 rounded-lg">
-              <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Classification</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6">
-                {anime.genres && anime.genres.length > 0 && (
-                  <div>
-                    <h4 className="text-gray-400 mb-2">Genres</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {anime.genres.map(genre => (
-                        <span 
-                          key={genre.mal_id}
-                          className="px-3 py-1 bg-blue-900/50 text-sm rounded-full"
-                        >
-                          {genre.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {anime.themes && anime.themes.length > 0 && (
-                  <div>
-                    <h4 className="text-gray-400 mb-2">Themes</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {anime.themes.map(theme => (
-                        <span 
-                          key={theme.mal_id}
-                          className="px-3 py-1 bg-purple-900/50 text-sm rounded-full"
-                        >
-                          {theme.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {anime.demographics && anime.demographics.length > 0 && (
-                  <div className="md:col-span-2 mt-2">
-                    <h4 className="text-gray-400 mb-2">Demographics</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {anime.demographics.map(demographic => (
-                        <span 
-                          key={demographic.mal_id}
-                          className="px-3 py-1 bg-green-900/50 text-sm rounded-full"
-                        >
-                          {demographic.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Background */}
-            {anime.background && (
-              <div className="bg-gray-900 p-6 rounded-lg">
-                <h3 className="text-xl font-medium mb-4 border-b border-gray-800 pb-2">Background</h3>
-                <p className="text-gray-300 leading-relaxed whitespace-pre-line">{anime.background}</p>
-              </div>
-            )}
-          </div>
-        )}
-
         {selectedTab === 'voices' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold mb-6">Voice Actors</h2>
+            <h2 className="text-2xl font-bold mt-3">Voice Actors</h2>
             {isStaffLoading ? (
               <div className="flex justify-center items-center h-40">
                 <Loader className="w-8 h-8 animate-spin text-blue-500" />
@@ -953,8 +715,8 @@ export function AnimeDetailsPage() {
             ) : staffData?.data && staffData.data.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {staffData.data.map((voiceActor) => (
-                  <div key={`${voiceActor.person.mal_id}`} className="bg-gray-900 rounded-lg overflow-hidden flex">
-                    <div className="w-20 h-20 bg-gray-800 overflow-hidden">
+                  <div key={`${voiceActor.person.mal_id}`} className="bg-gray-300 rounded-lg overflow-hidden flex">
+                    <div className="w-20 h-20 bg-gray-200 overflow-hidden">
                       <img 
                         src={voiceActor.person.images?.jpg?.image_url || `https://via.placeholder.com/80?text=${encodeURIComponent(voiceActor.person.name.charAt(0))}`}
                         alt={voiceActor.person.name}
@@ -963,12 +725,12 @@ export function AnimeDetailsPage() {
                       />
                     </div>
                     <div className="p-4 flex flex-col justify-center">
-                      <h3 className="font-medium text-white">{voiceActor.person.name}</h3>
-                      <p className="text-sm text-gray-400">
+                      <h3 className="font-medium ">{voiceActor.person.name}</h3>
+                      <p className="text-sm text-gray-500">
                         {voiceActor.language ? `${voiceActor.language} Voice` : 'Voice Actor'}
                       </p>
                       {voiceActor.character && (
-                        <p className="text-xs text-blue-400 mt-1">
+                        <p className="text-xs text-blue-400">
                           Character: {voiceActor.character.name}
                         </p>
                       )}
@@ -977,14 +739,14 @@ export function AnimeDetailsPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-gray-400 text-center">No voice actor information available.</div>
+              <div className="text-gray-500 text-center">No voice actor information available.</div>
             )}
           </div>
         )}
 
         {selectedTab === 'related' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold mb-6">Related Anime</h2>
+            <h2 className="text-2xl font-bold mt-3">Related Anime</h2>
             
             {anime?.relations && Object.keys(relationsByType).length > 0 ? (
               Object.entries(relationsByType).map(([relationType, entries]) => (
@@ -992,7 +754,7 @@ export function AnimeDetailsPage() {
                   <h3 className="text-xl font-medium mb-4">{relationType}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {(entries as any[]).map((entry) => (
-                      <div key={entry.mal_id} className="bg-gray-900 rounded-lg overflow-hidden flex flex-col">
+                      <div key={entry.mal_id} className="bg-gray-300 rounded-lg overflow-hidden flex flex-col">
                         <div className="p-4">
                           <h4 className="font-medium">
                             {entry.type === 'anime' ? (
@@ -1006,7 +768,7 @@ export function AnimeDetailsPage() {
                               <span>{entry.name}</span>
                             )}
                           </h4>
-                          <p className="text-sm text-gray-400">{entry.type}</p>
+                          <p className="text-sm text-gray-500">{entry.type}</p>
                         </div>
                       </div>
                     ))}
@@ -1015,14 +777,14 @@ export function AnimeDetailsPage() {
               
               ))
             ) : (
-              <div className="text-gray-400 text-center">No related anime information available.</div>
+              <div className="text-gray-500 text-center">No related anime information available.</div>
             )}
           </div>
         )}
 
         {selectedTab === 'recommendations' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold mb-6">Recommendations</h2>
+            <h2 className="text-2xl font-bold mt-3">Recommendations</h2>
             {isRecommendationsLoading ? (
               <div className="flex justify-center items-center h-40">
                 <Loader className="w-8 h-8 animate-spin text-blue-500" />
@@ -1032,7 +794,7 @@ export function AnimeDetailsPage() {
             ) : recommendationsData?.data && recommendationsData.data.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {recommendationsData.data.map((recommendation) => (
-                  <div key={recommendation.entry.mal_id} className="bg-gray-900 rounded-lg overflow-hidden flex flex-col">
+                  <div key={recommendation.entry.mal_id} className="rounded-lg overflow-hidden flex flex-col">
                     <div className="relative aspect-[3/4] overflow-hidden">
                       <img
                         src={recommendation.entry.images?.webp?.image_url || recommendation.entry.images?.jpg?.image_url || 'https://via.placeholder.com/225x320?text=No+Image'}
@@ -1049,7 +811,7 @@ export function AnimeDetailsPage() {
                         {recommendation.entry.title}
                       </Link>
                       <div className="mt-auto">
-                        <div className="flex justify-between items-center text-sm text-gray-400">
+                        <div className="flex justify-between items-center text-sm text-gray-500">
                           <span>{recommendation.votes} votes</span>
                         </div>
                       </div>
@@ -1058,15 +820,50 @@ export function AnimeDetailsPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-gray-400 text-center">No recommendations found for this anime.</div>
+              <div className="text-gray-500 text-center">No recommendations found for this anime.</div>
             )}
           </div>
         )}
 
         {selectedTab === 'characters' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold mb-4">Characters</h2>
-            <p className="text-gray-400">Character information is not available in the current API response.</p>
+            <h2 className="text-2xl font-bold mt-3">Characters</h2>
+            {isCharactersLoading ? (
+              <div className="flex justify-center items-center h-40">
+                <Loader className="w-8 h-8 animate-spin text-blue-500" />
+              </div>
+            ) : charactersError ? (
+              <div className="text-red-500 text-center">Failed to load character information.</div>
+            ) : charactersData?.data && charactersData.data.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {charactersData.data.map((character) => (
+                  <div key={character.character.mal_id} className="rounded-lg overflow-hidden flex flex-col">
+                    <div className="relative aspect-[3/4] overflow-hidden">
+                      <img
+                        src={character.character.images?.webp?.image_url || character.character.images?.jpg?.image_url || 'https://via.placeholder.com/225x320?text=No+Image'}
+                        alt={character.character.name}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-medium text-lg mb-1">{character.character.name}</h3>
+                      {character.role && (
+                        <p className="text-sm text-blue-400">{character.role}</p>
+                      )}
+                      <div className="mt-3 flex items-center gap-2">
+                        <Users className="w-4 h-4 text-gray-400" />
+                        <span className="text-xs text-gray-400">
+                          {character.favorites ? `${character.favorites} favorites` : 'No favorites data'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-500 text-center">No character information available for this anime.</div>
+            )}
           </div>
         )}
       </div>
@@ -1076,11 +873,11 @@ export function AnimeDetailsPage() {
         onClose={() => setIsCreateCollectionOpen(false)}
         className="relative z-50"
       >
-        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+        <div className="fixed inset-0" aria-hidden="true" />
         
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-gray-800 p-6 shadow-xl">
-            <Dialog.Title className="text-lg font-bold mb-4">Create New Collection</Dialog.Title>
+        <div className="fixed inset-0 left-96 top-28 flex items-center justify-center p-4">
+          <DialogPanel className="mx-auto max-w-sm rounded-lg p-6 shadow-xl">
+            <DialogTitle className="text-lg font-bold mb-4">Create New Collection</DialogTitle>
             
             <div className="mb-4">
               <input
@@ -1088,7 +885,7 @@ export function AnimeDetailsPage() {
                 value={newCollectionName}
                 onChange={(e) => setNewCollectionName(e.target.value)}
                 placeholder="Collection Name"
-                className="w-full p-2 border border-gray-600 bg-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
+                className="w-full p-2 border border-gray-600 bg-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none "
               />
             </div>
             
@@ -1101,12 +898,12 @@ export function AnimeDetailsPage() {
               </button>
               <button
                 onClick={handleCreateCollection}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600  rounded-md hover:bg-blue-700 transition-colors"
               >
                 Create
               </button>
             </div>
-          </Dialog.Panel>
+          </DialogPanel>
         </div>
       </Dialog>
     </div>

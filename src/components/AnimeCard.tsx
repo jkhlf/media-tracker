@@ -35,7 +35,7 @@ export function AnimeCard({ anime, onRemove, showRemoveButton, progress, totalEp
 
           {/* Progress bar overlay at bottom of image */}
           {hasProgress && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800">
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-background/80">
               <div 
                 className={`h-full ${isCompleted ? 'bg-green-500' : 'bg-blue-500'}`} 
                 style={{ width: `${totalEpisodes ? (progress / totalEpisodes) * 100 : 0}%` }}
@@ -45,9 +45,9 @@ export function AnimeCard({ anime, onRemove, showRemoveButton, progress, totalEp
 
           {/* Score overlay */}
           {anime.score > 0 && (
-            <div className="absolute top-2 right-2 bg-black/70 rounded-md px-1.5 py-0.5 flex items-center">
+            <div className="absolute top-2 right-2 bg-background/70 dark:bg-black/70 rounded-md px-1.5 py-0.5 flex items-center">
               <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-              <span className="ml-1 text-xs font-medium text-white">{anime.score.toFixed(1)}</span>
+              <span className="ml-1 text-xs font-medium text-foreground">{anime.score.toFixed(1)}</span>
             </div>
           )}
 
@@ -60,12 +60,12 @@ export function AnimeCard({ anime, onRemove, showRemoveButton, progress, totalEp
           )}
         </div>
         
-        <div className="p-2 ">
-          <h3 className="text-sm font-medium line-clamp-2 text-white">{anime.title}</h3>
+        <div className="p-2 bg-card text-card-foreground">
+          <h3 className="text-sm font-medium line-clamp-2">{anime.title}</h3>
           
           {/* Progress text */}
           {hasProgress && (
-            <div className="mt-1 text-xs text-gray-400">
+            <div className="mt-1 text-xs text-muted-foreground">
               {progress}/{totalEpisodes || '?'} eps {isCompleted && '(Completed)'}
             </div>
           )}
@@ -75,7 +75,7 @@ export function AnimeCard({ anime, onRemove, showRemoveButton, progress, totalEp
       {showRemoveButton && onRemove && (
         <button
           onClick={onRemove}
-          className="absolute -top-2 -right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/90"
           aria-label="Remove anime"
         >
           <X className="w-4 h-4" />

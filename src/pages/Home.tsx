@@ -63,7 +63,7 @@ export function Home() {
       {/* Top Anime */}
       {topAnime && (
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-left mx-3">Top Anime</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-left mx-3 mt-8">Top Anime</h2>
           <AnimeGrid
             items={topAnime.data.slice(0, 12)}
           />

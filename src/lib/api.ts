@@ -329,9 +329,8 @@ export const getAnimeWithFilters = async (filters: AnimeFilters = {}) => {
   return fetchData(`/anime${queryString}`);
 };
 
-
 export const getAnimeCharacters = async (id: number) => {
-  return fetchData(`/characters/${id}/anime`);
+  return fetchData(`/anime/${id}/characters`);
 }
 
 export const getAnimeVoices = async (id: number) => {

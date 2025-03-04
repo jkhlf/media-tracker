@@ -20,7 +20,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <Router>
-          <div className="min-h-screen bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100">
+          <div className="min-h-screen bg-background text-foreground">
             <NavBar />
             <main className="pt-20">
               <Routes>
@@ -33,7 +33,8 @@ function App() {
               </Routes>
               <Footer />
             </main>
-            <ToastContainer position="bottom-right"
+            <ToastContainer
+              position="bottom-right"
               autoClose={3000}
               hideProgressBar={false}
               newestOnTop
@@ -42,7 +43,9 @@ function App() {
               pauseOnFocusLoss
               draggable
               pauseOnHover
-              style={{ zIndex: 9999 }} />
+              theme="colored"
+              style={{ zIndex: 9999 }}
+            />
           </div>
         </Router>
       </ThemeProvider>

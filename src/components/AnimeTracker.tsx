@@ -118,14 +118,14 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
   const finishDate = userData?.finishDate ? new Date(userData.finishDate) : null;
   
   return (
-    <div className="bg-gray-900 rounded-lg p-6 space-y-6">
-      <h3 className="text-lg font-medium border-b border-gray-700 pb-2">Tracking</h3>
+    <div className="bg-card text-card-foreground rounded-lg p-6 space-y-6 border border-border">
+      <h3 className="text-lg font-medium border-b border-border pb-2">Tracking</h3>
       
       {/* Episode Progress */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <span className="text-gray-300">Progress</span>
-          <span className="text-gray-300 font-medium">
+          <span className="text-muted-foreground">Progress</span>
+          <span className="text-foreground font-medium">
             {currentEpisode}{totalEpisodes ? `/${totalEpisodes}` : ''} episodes
           </span>
         </div>
@@ -134,15 +134,15 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
           <button
             onClick={handleDecrementEpisode}
             disabled={currentEpisode <= 0}
-            className="p-2 rounded-md bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Decrease episode"
           >
             <Minus size={16} />
           </button>
           
-          <div className="relative w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+          <div className="relative w-full h-2 bg-secondary rounded-full overflow-hidden">
             <div 
-              className={`absolute left-0 top-0 h-full ${isComplete ? 'bg-green-500' : 'bg-blue-500'}`}
+              className={`absolute left-0 top-0 h-full ${isComplete ? 'bg-green-500' : 'bg-primary'}`}
               style={{ 
                 width: totalEpisodes 
                   ? `${Math.min(100, (currentEpisode / totalEpisodes) * 100)}%` 
@@ -154,7 +154,7 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
           <button
             onClick={handleIncrementEpisode}
             disabled={!!isComplete}
-            className="p-2 rounded-md bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Increase episode"
           >
             <Plus size={16} />
@@ -168,11 +168,11 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
             onChange={handleSetEpisode}
             min={0}
             max={totalEpisodes || undefined}
-            className="w-20 px-2 py-1 bg-gray-800 border border-gray-700 rounded-md text-center"
+            className="w-20 px-2 py-1 bg-secondary text-secondary-foreground border border-border rounded-md text-center"
           />
           
           {isComplete && (
-            <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+            <span className="ml-2 inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
               <Check size={14} className="mr-1" />
               Completed
             </span>
@@ -183,7 +183,7 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
           {!isComplete && totalEpisodes && (
             <button
               onClick={handleMarkAsComplete}
-              className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded-md text-sm text-white flex items-center gap-1"
+              className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm flex items-center gap-1"
             >
               <Check size={14} />
               Mark as Complete
@@ -195,8 +195,8 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
       {/* Dates */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Calendar size={16} className="text-gray-400" />
-          <span className="text-gray-300 text-sm">
+          <Calendar size={16} className="text-muted-foreground" />
+          <span className="text-muted-foreground text-sm">
             {startDate 
               ? `Started on ${format(startDate, 'MMM d, yyyy')}` 
               : 'Not started yet'}
@@ -205,8 +205,8 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
         
         {finishDate && (
           <div className="flex items-center gap-2">
-            <Check size={16} className="text-green-400" />
-            <span className="text-gray-300 text-sm">
+            <Check size={16} className="text-green-500" />
+            <span className="text-muted-foreground text-sm">
               Completed on {format(finishDate, 'MMM d, yyyy')}
             </span>
           </div>
@@ -215,7 +215,7 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
       
       {/* Score */}
       <div className="space-y-2">
-        <label className="block text-gray-300">Your Score</label>
+        <label className="block text-muted-foreground">Your Score</label>
         <div className="flex flex-wrap gap-1">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
             <button
@@ -223,8 +223,8 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
               onClick={() => handleScoreChange(value)}
               className={`w-8 h-8 rounded-md flex items-center justify-center ${
                 score === value 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
               }`}
             >
               {value}
@@ -236,10 +236,10 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
       {/* Notes */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="block text-gray-300">Notes</label>
+          <label className="block text-muted-foreground">Notes</label>
           <button
             onClick={() => setShowNotes(!showNotes)}
-            className="text-sm text-blue-400 hover:text-blue-300"
+            className="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
           >
             {showNotes ? 'Hide' : 'Edit'}
           </button>
@@ -250,13 +250,13 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full h-24 px-3 py-2 bg-gray-800 border border-gray-700 rounded-md"
+              className="w-full h-24 px-3 py-2 bg-secondary border border-border rounded-md text-secondary-foreground"
               placeholder="Add your thoughts, reflections, or notes about this anime..."
             />
             <div className="flex justify-end">
               <button
                 onClick={handleSaveNotes}
-                className="px-3 py-1 flex items-center gap-1 bg-blue-600 hover:bg-blue-700 rounded-md text-white text-sm"
+                className="px-3 py-1 flex items-center gap-1 bg-primary hover:bg-primary/80 text-primary-foreground rounded-md text-sm"
               >
                 <Save size={14} />
                 Save Notes
@@ -264,11 +264,11 @@ export function AnimeTracker({ animeId, totalEpisodes, onUpdate, animeDetails }:
             </div>
           </div>
         ) : (
-          <div className="bg-gray-800 rounded-md p-3 min-h-[60px] text-sm">
+          <div className="bg-secondary rounded-md p-3 min-h-[60px] text-sm">
             {notes ? (
-              <p className="text-gray-300 whitespace-pre-wrap">{notes}</p>
+              <p className="text-secondary-foreground whitespace-pre-wrap">{notes}</p>
             ) : (
-              <p className="text-gray-500 italic">No notes yet</p>
+              <p className="text-muted-foreground italic">No notes yet</p>
             )}
           </div>
         )}

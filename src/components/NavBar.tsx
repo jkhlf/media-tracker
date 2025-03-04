@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { searchAnime } from "../lib/api";
 import { AnimeCard } from "./AnimeCard";
 import { useTheme } from "../context/ThemeContext";
+import { ThemeToggle } from './ThemeToggle';
 
 export function Navbar() {
   const location = useLocation();
@@ -77,12 +78,7 @@ export function Navbar() {
                 isActive={location.pathname === path}
               />
             ))}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            >
-              {theme === 'light' ? <Moon className="w-6 h-6 text-gray-700" /> : <Sun className="w-6 h-6 text-yellow-400" />}
-            </button>
+            <ThemeToggle />
           </div>
         </nav>
       </div>

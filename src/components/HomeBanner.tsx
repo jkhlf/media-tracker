@@ -17,7 +17,7 @@ const HomeBanner: React.FC = () => {
           </p>
           
           <a 
-            href="/library" 
+            href="/catalog" 
             className="inline-flex items-center text-white bg-indigo-500 hover:bg-indigo-600 px-6 py-3 rounded-md font-medium transition-colors"
           >
             Explore Anime
