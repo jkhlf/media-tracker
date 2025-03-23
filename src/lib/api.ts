@@ -156,8 +156,29 @@ export const getTopCharacters = async (page = 1) => {
   return fetchData(`/top/characters?page=${page}`);
 };
 
-export const searchAnime = async (query: string, page = 1) => {
-  return fetchData(`/anime?q=${query}&page=${page}`);
+export const searchAnime = async (query: string) => {
+  if (!query || query.trim().length < 3) {
+    throw new Error('A consulta de busca deve ter pelo menos 3 caracteres');
+  }
+
+  try {
+    // Usar o mesmo sistema de rate limiting
+    const response = await enqueueRequest(() => 
+      axios.get(`https://api.jikan.moe/v4/anime`, {
+        params: {
+          q: query,
+          limit: 15, // Limitar a 15 resultados
+          order_by: 'popularity', // Ordenar por popularidade
+          sort: 'asc' // Crescente (mais popular primeiro)
+        }
+      })
+    );
+    
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar animes:', error);
+    throw new Error('Falha ao buscar animes. Tente novamente mais tarde.');
+  }
 };
 
 export const searchManga = async (query: string, page = 1) => {

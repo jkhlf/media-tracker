@@ -13,8 +13,8 @@ export function StatCard({ title, value, icon, description, format, className = 
   const formattedValue = typeof value === 'number' && format ? format(value) : value;
   
   return (
-    <div className={`bg-gray-900 rounded-lg p-6 flex items-center gap-4 ${className}`}>
-      <div className="bg-gray-800 p-3 rounded-lg">
+    <div className={`bg-gray-100 dark:bg-gray-900 rounded-lg p-6 flex items-center gap-4 ${className}`}>
+      <div className="bg-gray-100 dark:bg-gray-900 p-3 rounded-lg">
         {icon}
       </div>
       <div>
