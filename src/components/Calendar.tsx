@@ -197,7 +197,7 @@ export function Calendar() {
             <button
               key={day}
               className={`px-3 py-1 text-sm capitalize whitespace-nowrap rounded-md ${
-                selectedDay === day ? 'bg-blue-600' : 'bg-gray-700'
+                selectedDay === day ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-500'
               }`}
               onClick={() => setSelectedDay(day)}
             >
@@ -213,7 +213,7 @@ export function Calendar() {
               <Link 
                 key={`${anime.mal_id}-${index}`} 
                 to={`/anime/${anime.mal_id}`} 
-                className="flex items-center gap-4 bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex items-center gap-4 bg-slate-100 dark:bg-gray-900 p-4 rounded-lg hover:bg-gray-700 transition-colors"
               >
                 {anime.images?.jpg?.image_url && (
                   <img 
@@ -238,7 +238,7 @@ export function Calendar() {
                   {anime.genres && anime.genres.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {anime.genres.slice(0, 3).map((genre: any, genreIndex: number) => (
-                        <span key={`${genre.mal_id}-${genreIndex}`} className="text-xs bg-gray-700 px-2 py-0.5 rounded">
+                        <span key={`${genre.mal_id}-${genreIndex}`} className="text-xs bg-gray-200 dark:bg-gray-500 px-2 py-0.5 rounded">
                           {genre.name}
                         </span>
                       ))}
@@ -354,19 +354,19 @@ export function Calendar() {
   };
 
   return (
-    <div className="p-5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100 rounded-lg shadow-lg">
+    <div className="p-5 text-gray-900 dark:text-gray-100 rounded-lg">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <h2 className="text-xl font-semibold">Anime Calendar</h2>
         
         <div className="flex flex-wrap gap-2">
           <button 
-            className={`px-3 py-1 text-sm rounded-md ${selectedView === 'releases' ? 'bg-blue-600' : 'bg-gray-700'}`}
+            className={`px-3 py-1 text-sm rounded-md ${selectedView === 'releases' ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-500'}`}
             onClick={() => setSelectedView('releases')}
           >
             Daily Releases
           </button>
           <button 
-            className={`px-3 py-1 text-sm rounded-md ${selectedView === 'personal' ? 'bg-blue-600' : 'bg-gray-700'}`}
+            className={`px-3 py-1 text-sm rounded-md ${selectedView === 'personal' ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-500'}`}
             onClick={() => setSelectedView('personal')}
           >
             My Schedule
@@ -387,7 +387,7 @@ export function Calendar() {
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-400">SFW</label>
-              <div className={`relative w-9 h-5 rounded-full ${showSfw ? 'bg-blue-600' : 'bg-gray-600'}`}>
+              <div className={`relative w-9 h-5 rounded-full ${showSfw ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-500'}`}>
                 <input
                   type="checkbox"
                   className="opacity-0 absolute w-full h-full cursor-pointer"
@@ -400,7 +400,7 @@ export function Calendar() {
             
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-400">Kids</label>
-              <div className={`relative w-9 h-5 rounded-full ${showKids ? 'bg-blue-600' : 'bg-gray-600'}`}>
+              <div className={`relative w-9 h-5 rounded-full ${showKids ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-500'}`}>
                 <input
                   type="checkbox"
                   className="opacity-0 absolute w-full h-full cursor-pointer"
