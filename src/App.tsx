@@ -9,6 +9,8 @@ import AnimeDetailsPage from './pages/AnimeDetailsPage';
 import Library from './pages/Library';
 import Statistics from './pages/Statistics';
 import CalendarPage from './pages/CalendarPage';
+import CollectionPage from './pages/CollectionPage';
+import CollectionEditor from './components/CollectionEditor';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ThemeProvider } from './context/ThemeContext';
@@ -30,6 +32,9 @@ function App() {
                 <Route path="/statistics" element={<Statistics />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/catalog" element={<Catalog />} />
+                <Route path="/collection/:slug" element={<CollectionPage />} />
+                <Route path="/collections/create" element={<CollectionEditor />} />
+                <Route path="/collection/:slug/edit" element={<CollectionEditor />} />
               </Routes>
               <Footer />
             </main>
