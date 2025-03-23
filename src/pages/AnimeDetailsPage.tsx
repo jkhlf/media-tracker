@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  ArrowLeftFromLine, Heart, PlusCircle, Star, X, Play, Eye, BookmarkPlus, 
-  Check, Loader, Award, TrendingUp, ExternalLink, Users, Radio
+  ArrowLeftFromLine, Heart , Star, Play, Eye, BookmarkPlus, 
+  Check, Loader, Award, TrendingUp,Users
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getAnimeDetails, getAnimeRecommendationsForDetails, getAnimeCharacters, getAnimeVoices } from '../lib/api';
@@ -9,7 +9,6 @@ import { useAnimeStore } from '../lib/store';
 import { useUserDataStore } from '../lib/userDataStore';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import AnimeTracker from '../components/AnimeTracker';
 
 const formatDate = (dateString) => {
@@ -81,8 +80,6 @@ export function AnimeDetailsPage() {
 
   const [selectedTab, setSelectedTab] = useState('overview');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false);
-  const [newCollectionName, setNewCollectionName] = useState('');
   const [userAnimeData, setUserAnimeData] = useState<{
     episode?: number;
     notes?: string;
@@ -278,39 +275,6 @@ export function AnimeDetailsPage() {
     }
   };
   
-  const handleAddToCollection = (collectionName) => {
-    if (!anime) return;
-    
-    addToCollection(anime, collectionName);
-    toast.success(`Added to ${collectionName}`);
-    setIsDropdownOpen(false);
-  };
-  
-  const handleRemoveFromCollection = (collectionName) => {
-    if (!animeId) return;
-    
-    removeFromCollection(animeId, collectionName);
-    toast.success(`Removed from collection: ${collectionName}`);
-    setIsDropdownOpen(false);
-  };
-  
-  const handleCreateCollection = () => {
-    if (!anime || !newCollectionName.trim()) return;
-    
-    if (collections.some(c => c.name === newCollectionName)) {
-      toast.error('Collection with this name already exists');
-      return;
-    }
-    
-    createCollection(newCollectionName);
-    addToCollection(anime, newCollectionName);
-    toast.success(`Added to new collection: ${newCollectionName}`);
-    setNewCollectionName('');
-    setIsCreateCollectionOpen(false);
-    setIsDropdownOpen(false);
-  };
-
-  // Loading state
   if (isLoading || animeId === null) {
     return (
       <div className="min-h-screen  flex items-center justify-center">
@@ -362,7 +326,7 @@ export function AnimeDetailsPage() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-full font-medium hover:bg-gray-200 transition"
               >
-                <Play className="w-4 h-4" /> Watch Trailer
+                <Play className="w-4 h-4" /> Veja o Trailer
               </a>
             </div>
           )}
@@ -420,7 +384,7 @@ export function AnimeDetailsPage() {
                   } transition-colors`}
                 >
                   <Eye className="w-4 h-4" /> 
-                  {isInWatching ? 'Watching' : 'Add to Watching'}
+                  {(isInWatching) ? 'Watching' : 'Watching'}
                 </button>
                 
                 <button
@@ -430,7 +394,7 @@ export function AnimeDetailsPage() {
                   } transition-colors`}
                 >
                   <BookmarkPlus className="w-4 h-4" /> 
-                  {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+                  {isInWatchlist ? 'In Watchlist' : 'To Watchlist'}
                 </button>
                 
                 <button
@@ -440,81 +404,18 @@ export function AnimeDetailsPage() {
                   } transition-colors`}
                 >
                   <Check className="w-4 h-4" /> 
-                  {isInWatched ? 'Watched' : 'Mark as Watched'}
+                  {isInWatched ? 'Completed' : 'Completed'}
                 </button>
                 
                 <button
                   onClick={handleFavoriteToggle}
                   className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                    isInFavorites ? 'bg-red-700' : ' hover:bg-gray-50'
+                    isInFavorites ? 'bg-red-700' : ' hover:bg-gray-400'
                   } transition-colors`}
                 >
                   <Heart className={`w-4 h-4 ${isInFavorites ? 'fill-white' : ''}`} /> 
-                  {isInFavorites ? 'Favorited' : 'Add to Favorites'}
+                  {isInFavorites ? 'Favorited' : 'Favorites'}
                 </button>
-                
-                <div className="relative">
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="px-4 py-2 rounded-md flex items-center gap-2  hover:bg-gray-400 transition-colors"
-                  >
-                    <PlusCircle className="w-4 h-4" /> Add to Collection
-                  </button>
-                  
-                  {isDropdownOpen && (
-                    <div className="absolute left-0 mt-2  rounded-md shadow-lg overflow-hidden z-10 w-64 max-h-60 overflow-y-auto">
-                      <div className="p-2">
-                        <button
-                          onClick={() => setIsCreateCollectionOpen(true)}
-                          className="w-full py-2 px-3 text-left rounded-md  hover:bg-gray-400 flex items-center gap-2"
-                        >
-                          <PlusCircle size={16} />
-                          Create new collection
-                        </button>
-                        
-                        {/* If the anime is in any collections, show them with option to remove */}
-                        {animeCollections.length > 0 && (
-                          <>
-                            <div className="h-px my-2"></div>
-                            <p className="px-3 py-1 text-xs text-gray-500">In collections:</p>
-                            
-                            {animeCollections.map((collection) => (
-                              <div key={collection.name} className="flex items-center justify-between py-1 px-3 hover:bg-gray-400 rounded-md">
-                                <span className="text-sm text-gray-300">{collection.name}</span>
-                                <button
-                                  onClick={() => handleRemoveFromCollection(collection.name)}
-                                  className="p-1 text-gray-500 hover:text-red-500"
-                                  title={`Remove from ${collection.name}`}
-                                >
-                                  <X size={14} />
-                                </button>
-                              </div>
-                            ))}
-                          </>
-                        )}
-                        
-                        {collections.filter(c => !animeCollections.some(ac => ac.name === c.name)).length > 0 && (
-                          <>
-                            <div className="h-px my-2"></div>
-                            <p className="px-3 py-1 text-xs text-gray-500">Add to collection:</p>
-                            
-                            {collections
-                              .filter(c => !animeCollections.some(ac => ac.name === c.name))
-                              .map((collection) => (
-                                <button
-                                  key={collection.name}
-                                  onClick={() => handleAddToCollection(collection.name)}
-                                  className="w-full py-2 px-3 text-left rounded-md  hover:bg-gray-400"
-                                >
-                                  {collection.name}
-                                </button>
-                              ))}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </div>
@@ -528,31 +429,37 @@ export function AnimeDetailsPage() {
             active={selectedTab === 'overview'}
             onClick={() => setSelectedTab('overview')}
           >
-            Overview
+            Visão geral
           </TabButton>
           <TabButton
             active={selectedTab === 'characters'}
             onClick={() => setSelectedTab('characters')}
           >
-            Characters
+            Personagens
           </TabButton>
           <TabButton
             active={selectedTab === 'voices'}
             onClick={() => setSelectedTab('voices')}
           >
-            Voices
+            Vozes
           </TabButton>
           <TabButton
             active={selectedTab === 'related'}
             onClick={() => setSelectedTab('related')}
           >
-            Related
+            Relacionados
           </TabButton>
           <TabButton
             active={selectedTab === 'recommendations'}
             onClick={() => setSelectedTab('recommendations')}
           >
-            Recommendations
+            Recomendações
+          </TabButton>
+          <TabButton
+            active={selectedTab === 'tracking'}
+            onClick={() => setSelectedTab('tracking')}
+          >
+            Tracking
           </TabButton>
         </div>
 
@@ -561,24 +468,27 @@ export function AnimeDetailsPage() {
         {selectedTab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              
+
                 <div className="md:col-span-1 p-6 rounded-lg">
+                  <h3 className='text-lg font-bold mb-4'>Detalhes</h3>
                 {anime.type && (
-                  <div className="mb-4">
-                  <h3 className="text-gray-500 text-sm">Type</h3>
-                  <p className="font-medium">{anime.type}</p>
+                  <div className="mb-4 flex">
+                  <h3 className="text-gray-500 text-sm ">Tipo</h3>
+                  <p className="font-medium ml-20">{anime.type}</p>
                   </div>
                 )}
                 
                 {anime.episodes !== null && (
                   <div className="mb-4">
-                  <h3 className="text-gray-500 text-sm">Episodes</h3>
+                  <h3 className="text-gray-500 text-sm">Episodios</h3>
                   <p className="font-medium">{anime.episodes || 'Unknown'}</p>
                   </div>
                 )}
 
                 {anime.duration && (
                   <div className="mb-4">
-                    <div className="text-sm text-gray-500">Duration</div>
+                    <div className="text-sm text-gray-500">Duração</div>
                     <div className=" font-medium">{formatDuration(anime.duration)}</div>
                   </div>
                 )}
@@ -592,7 +502,7 @@ export function AnimeDetailsPage() {
                 
                 {anime.aired && anime.aired.from && (
                   <div className="mb-4">
-                  <h3 className="text-gray-500 text-sm">Aired</h3>
+                  <h3 className="text-gray-500 text-sm">Lançamento</h3>
                   <p className="font-medium">{formatDate(anime.aired.from)}</p>
                   </div>
                 )}
@@ -613,7 +523,7 @@ export function AnimeDetailsPage() {
 
                 {anime.broadcast && (anime.broadcast.day || anime.broadcast.time) && (
                   <div className="mb-4">
-                  <div className="text-sm text-gray-500">Broadcast</div>
+                  <div className="text-sm text-gray-500">Horarios</div>
                   <div className="font-medium flex items-center">
                     {formatBroadcast(anime.broadcast)}
                   </div>
@@ -621,78 +531,50 @@ export function AnimeDetailsPage() {
                 )}
 
                 <div className="mt-2">
-                  <h3 className="text-gray-500 text-sm mb-2">Genres</h3>
+                  <h3 className="text-gray-500 text-sm mb-2">Generos</h3>
                   <div className="flex flex-wrap gap-2">
                   {anime.genres && anime.genres.map(genre => (
                     <span 
                     key={genre.mal_id}
-                    className="px-3 py-1 text-sm"
+                    className="py-1 text-sm"
                     >
                     {genre.name}
                     </span>
                   ))}
-                  {anime.demographics && anime.demographics.map(demographic => (
-                    <span 
-                    key={demographic.mal_id}
-                    className="px-3 py-1  text-sm"
-                    >
-                    {demographic.name}
-                    </span>
-                  ))}
                   </div>
                 </div>
-                </div>
-              
-              <div className="md:col-span-2 p-6 rounded-lg">
-                <h3 className="text-sm mb-2">Synopsis</h3>
-                <p className="leading-relaxed">{anime.synopsis}</p>
-              </div>
-            </div>
-            
-            {/* New section: Anime Tracker */}
-            {animeId && (
-              <div className="mb-10">
-                <AnimeTracker 
-                  animeId={animeId} 
-                  totalEpisodes={anime?.episodes} 
-                  animeDetails={anime}
-                />
-              </div>
-            )}
-            
-            {/* External Links */}
+
+                  {/* External Links */}
             {anime.external && anime.external.length > 0 && (
-              <div className="space-y-4 max-w-6xl mt-6">
-                <h3 className="text-xl font-semibold">External Links</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="space-y-4 mt-6">
+                <h3 className="text-xl font-semibold">Links Externos</h3>
+                <div>
                   {anime.external.slice(0,3).map((link, index) => (
                     <a
                       key={index}
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-3 hover:bg-gray-500 transition-colors"
+                      className="flex items-center gap-2 py-3 hover:bg-gray-500 transition-colors"
                     >
                       <span>{link.name}</span>
-                      <ExternalLink className="w-4 h-4" />
                     </a>
                   ))}
                 </div>
               </div>
             )}
-            
-            {/* Streaming Services */}
+
             {anime.streaming && anime.streaming.length > 0 && (
               <div className="space-y-4 max-w-6xl mt-6">
-                <h3 className="text-xl font-semibold">Where to Watch</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <h3 className="text-xl font-semibold">Onde Assistir</h3>
+                <div>
                   {anime.streaming.map((service, index) => (
                     <a
                       key={index}
                       href={service.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-3  rounded-md hover:bg-gray-500 transition-colors"
+                      className="flex items-center gap-2 py-3 rounded-md hover:bg-gray-500 transition-colors"
                     >
                       <span>{service.name}</span>
                     </a>
@@ -701,11 +583,18 @@ export function AnimeDetailsPage() {
               </div>
             )}
           </div>
+              
+              <div className="md:col-span-2 p-6 rounded-lg">
+                <h3 className="text-sm mb-2">Descrição</h3>
+                <p className="leading-relaxed">{anime.synopsis}</p>
+              </div>
+            </div>
+          </div>
         )}
 
         {selectedTab === 'voices' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold mt-3">Voice Actors</h2>
+            <h2 className="text-2xl font-bold mt-3">Vozes dos Personagens</h2>
             {isStaffLoading ? (
               <div className="flex justify-center items-center h-40">
                 <Loader className="w-8 h-8 animate-spin text-blue-500" />
@@ -746,7 +635,7 @@ export function AnimeDetailsPage() {
 
         {selectedTab === 'related' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold mt-3">Related Anime</h2>
+            <h2 className="text-2xl font-bold mt-3">Animes Relacionados</h2>
             
             {anime?.relations && Object.keys(relationsByType).length > 0 ? (
               Object.entries(relationsByType).map(([relationType, entries]) => (
@@ -754,7 +643,7 @@ export function AnimeDetailsPage() {
                   <h3 className="text-xl font-medium mb-4">{relationType}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {(entries as any[]).map((entry) => (
-                      <div key={entry.mal_id} className="bg-gray-300 rounded-lg overflow-hidden flex flex-col">
+                      <div key={entry.mal_id} className="rounded-lg overflow-hidden flex flex-col">
                         <div className="p-4">
                           <h4 className="font-medium">
                             {entry.type === 'anime' ? (
@@ -784,7 +673,7 @@ export function AnimeDetailsPage() {
 
         {selectedTab === 'recommendations' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold mt-3">Recommendations</h2>
+            <h2 className="text-2xl font-bold mt-3">Recomendações</h2>
             {isRecommendationsLoading ? (
               <div className="flex justify-center items-center h-40">
                 <Loader className="w-8 h-8 animate-spin text-blue-500" />
@@ -827,7 +716,7 @@ export function AnimeDetailsPage() {
 
         {selectedTab === 'characters' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold mt-3">Characters</h2>
+            <h2 className="text-2xl font-bold mt-3">Personagens</h2>
             {isCharactersLoading ? (
               <div className="flex justify-center items-center h-40">
                 <Loader className="w-8 h-8 animate-spin text-blue-500" />
@@ -838,11 +727,11 @@ export function AnimeDetailsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {charactersData.data.map((character) => (
                   <div key={character.character.mal_id} className="rounded-lg overflow-hidden flex flex-col">
-                    <div className="relative aspect-[3/4] overflow-hidden">
+                    <div className="relative  overflow-hidden">
                       <img
                         src={character.character.images?.webp?.image_url || character.character.images?.jpg?.image_url || 'https://via.placeholder.com/225x320?text=No+Image'}
                         alt={character.character.name}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        className="w-full h-52 object-contain hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                       />
                     </div>
@@ -866,46 +755,17 @@ export function AnimeDetailsPage() {
             )}
           </div>
         )}
+     
+            {selectedTab === 'tracking' && (
+              <div className="my-10">
+                <AnimeTracker 
+                  animeId={animeId} 
+                  totalEpisodes={anime?.episodes} 
+                  animeDetails={anime}
+                />
+              </div>
+            )}
       </div>
-
-      <Dialog
-        open={isCreateCollectionOpen}
-        onClose={() => setIsCreateCollectionOpen(false)}
-        className="relative z-50"
-      >
-        <div className="fixed inset-0" aria-hidden="true" />
-        
-        <div className="fixed inset-0 left-96 top-28 flex items-center justify-center p-4">
-          <DialogPanel className="mx-auto max-w-sm rounded-lg p-6 shadow-xl">
-            <DialogTitle className="text-lg font-bold mb-4">Create New Collection</DialogTitle>
-            
-            <div className="mb-4">
-              <input
-                type="text"
-                value={newCollectionName}
-                onChange={(e) => setNewCollectionName(e.target.value)}
-                placeholder="Collection Name"
-                className="w-full p-2 border border-gray-600 bg-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none "
-              />
-            </div>
-            
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setIsCreateCollectionOpen(false)}
-                className="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateCollection}
-                className="px-4 py-2 bg-blue-600  rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Create
-              </button>
-            </div>
-          </DialogPanel>
-        </div>
-      </Dialog>
     </div>
   </div>
   );
