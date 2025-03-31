@@ -9,25 +9,29 @@
 
 ## Overview
 
-AnimeTracker is a comprehensive anime tracking application built with React and TypeScript. It provides users with a centralized platform to discover, manage, and track their anime watching progress. The application leverages the Jikan API for anime data, implements responsive design with TailwindCSS, and enhances user experience with smooth animations via Framer Motion.
+AnimeTracker is a comprehensive anime tracking application built with React and TypeScript. It provides users with a centralized platform to discover, manage, and track their anime watching progress. The application leverages the Jikan API for anime data, implements responsive design with TailwindCSS, and enhances user experience with smooth animations via Framer Motion. All data is stored locally, allowing users to maintain their tracking information without requiring a server connection.
 
 ## Features
 
 ### Core Functionality
-- **Search & Discovery:** Fast and responsive anime search with instant results
-- **Library Management:** Add anime to "Watchlist", "Watched", and "Favorites" lists
-- **Detailed Information:** Comprehensive anime details including synopsis, ratings, genres, and studios
-- **Streaming Information:** See which platforms an anime is available on
-- **Personal Notes:** Add personal ratings and notes for each anime
-- **Episode Tracking:** Keep track of which episodes you've watched
+- **Search & Discovery:** Fast and responsive anime search with instant results and advanced filtering options
+- **Library Management:** Add anime to "Watchlist", "Watched", "Watching", and "Favorites" lists
+- **Collection System:** Create custom collections to organize anime by personal categories
+- **Detailed Information:** Comprehensive anime details including synopsis, ratings, genres, studios, and related anime
+- **Streaming Information:** See which platforms an anime is available on with direct links
+- **Personal Notes:** Add personal ratings (1-5 stars) and detailed notes for each anime
+- **Episode Tracking:** Keep track of which episodes you've watched with intuitive +/- controls
 
 ### Advanced Features
-- **Calendar View:** Browse airing schedule by day of the week
-- **Personal Schedule:** Auto-generated watching schedule based on your watchlist
-- **Statistics Dashboard:** View analytics about your watching habits
-- **Dark/Light Mode:** Toggle between visual themes
+- **Calendar View:** Browse airing schedule by day of the week with filtering options for SFW content and children's shows
+- **Personal Schedule:** Auto-generated watching schedule based on your watchlist with airing days and times
+- **Statistics Dashboard:** View analytics about your watching habits, favorite genres, and time spent watching
+- **Recommendations:** Get personalized anime recommendations based on your watch history
+- **Character Information:** View detailed character information and voice actors
+- **Related Content:** Discover related anime and adaptations with direct links
+- **Dark/Light Mode:** Toggle between visual themes with smooth transitions
 - **Toast Notifications:** Receive feedback for actions with customized toast messages
-- **Responsive Design:** Optimized experience across desktop and mobile devices
+- **Responsive Design:** Optimized experience across desktop and mobile devices with fluid animations
 
 ## Site Flow
 
@@ -83,10 +87,11 @@ graph TD
 ## API Integration
 
 This project uses the Jikan API (https://jikan.moe/) to fetch anime data. The API integration features:
-- Smart caching to reduce API calls
+- Smart caching to reduce API calls with customizable expiration times
 - Rate limiting to respect API usage guidelines
 - Error handling with retry logic for failed requests
 - Data transformation for optimized frontend usage
+- Dedicated endpoints for anime details, recommendations, schedules, and character information
 
 ## Getting Started
 
@@ -147,4 +152,4 @@ anime-tracker/
 
 ---
 
-Created with ❤️ by João Khalaf
+Created with by João Khalaf
