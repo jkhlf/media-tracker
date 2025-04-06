@@ -1,249 +1,119 @@
 import { CollectionProps } from '../components/AnimeCollection';
 
+// Define collection skeletons that will be populated with API data
 export const romanceCollection: CollectionProps = {
   title: 'Romances Favoritos',
   slug: 'romance-favorites',
   description: 'Uma coletânea dos melhores animes românticos que vão te fazer suspirar',
-  coverImage: 'https://cdn.myanimelist.net/images/anime/1822/122795l.jpg',
-  items: [
-    {
-      id: 14813,
-      title: 'Yahari Ore no Seishun Love Comedy wa Machigatteiru.',
-      image: 'https://cdn.myanimelist.net/images/anime/1786/128142l.jpg',
-      score: 8.08,
-      year: 2013
-    },
-    {
-      id: 23273,
-      title: 'Shigatsu wa Kimi no Uso',
-      image: 'https://cdn.myanimelist.net/images/anime/3/67177l.jpg',
-      score: 8.66,
-      year: 2014
-    },
-    {
-      id: 37999,
-      title: 'Kaguya-sama wa Kokurasetai: Tensai-tachi no Renai Zunousen',
-      image: 'https://cdn.myanimelist.net/images/anime/1295/106551l.jpg',
-      score: 8.40,
-      year: 2019
-    },
-    {
-      id: 28851,
-      title: 'Koe no Katachi',
-      image: 'https://cdn.myanimelist.net/images/anime/1122/96435l.jpg',
-      score: 8.94,
-      year: 2016
-    },
-    {
-      id: 5081,
-      title: 'Bakemonogatari',
-      image: 'https://cdn.myanimelist.net/images/anime/11/75274l.jpg',
-      score: 8.35,
-      year: 2009
-    },
-    {
-      id: 25397,
-      title: 'Ore Monogatari!!',
-      image: 'https://cdn.myanimelist.net/images/anime/12/75697l.jpg',
-      score: 7.94,
-      year: 2015
-    },
-    {
-      id: 2167,
-      title: 'Clannad: After Story',
-      image: 'https://cdn.myanimelist.net/images/anime/1299/110774l.jpg',
-      score: 8.94,
-      year: 2008
-    },
-    {
-      id: 38000,
-      title: 'Fruits Basket (2019)',
-      image: 'https://cdn.myanimelist.net/images/anime/1447/111958l.jpg',
-      score: 8.43,
-      year: 2019
-    },
-    {
-      id: 2966,
-      title: 'Ookami to Koushinryou',
-      image: 'https://cdn.myanimelist.net/images/anime/10/5973l.jpg',
-      score: 8.32,
-      year: 2008
-    },
-    {
-      id: 45726,
-      title: 'Horimiya',
-      image: 'https://cdn.myanimelist.net/images/anime/1695/111486l.jpg',
-      score: 8.17,
-      year: 2021
-    }
-  ]
+  coverImage: '',
+  items: []
 };
 
-// Coleção de Animes Slice of Life
 export const sliceOfLifeCollection: CollectionProps = {
   title: 'Slice of Life Favoritos',
   slug: 'slice-of-life-favorites',
   description: 'Relaxe com estes animes que retratam o cotidiano de maneira encantadora',
-  coverImage: 'https://cdn.myanimelist.net/images/anime/12/67743l.jpg',
-  items: [
-    {
-      id: 21922,
-      title: 'Barakamon',
-      image: 'https://cdn.myanimelist.net/images/anime/12/67743l.jpg',
-      score: 8.43,
-      year: 2014
-    },
-    {
-      id: 37450,
-      title: 'Yuru Camp△',
-      image: 'https://cdn.myanimelist.net/images/anime/4/89877l.jpg',
-      score: 8.31,
-      year: 2018
-    },
-    {
-      id: 1210,
-      title: 'NHK ni Youkoso!',
-      image: 'https://cdn.myanimelist.net/images/anime/13/22719l.jpg',
-      score: 8.42,
-      year: 2006
-    },
-    {
-      id: 2167,
-      title: 'Clannad: After Story',
-      image: 'https://cdn.myanimelist.net/images/anime/1299/110774l.jpg',
-      score: 8.94,
-      year: 2008
-    },
-    {
-      id: 36038,
-      title: 'Violet Evergarden',
-      image: 'https://cdn.myanimelist.net/images/anime/1795/95088l.jpg',
-      score: 8.68,
-      year: 2018
-    },
-    {
-      id: 32901,
-      title: 'Kobayashi-san Chi no Maid Dragon',
-      image: 'https://cdn.myanimelist.net/images/anime/5/85434l.jpg',
-      score: 8.00,
-      year: 2017
-    },
-    {
-      id: 20583,
-      title: 'Haikyuu!!',
-      image: 'https://cdn.myanimelist.net/images/anime/7/76014l.jpg',
-      score: 8.45,
-      year: 2014
-    },
-    {
-      id: 431,
-      title: 'Honey and Clover',
-      image: 'https://cdn.myanimelist.net/images/anime/10/19555l.jpg',
-      score: 8.03,
-      year: 2005
-    },
-    {
-      id: 11887,
-      title: 'Hyouka',
-      image: 'https://cdn.myanimelist.net/images/anime/13/50521l.jpg',
-      score: 8.14,
-      year: 2012
-    },
-    {
-      id: 47917,
-      title: 'Bocchi the Rock!',
-      image: 'https://cdn.myanimelist.net/images/anime/1448/127956l.jpg',
-      score: 8.77,
-      year: 2022
-    }
-  ]
+  coverImage: '',
+  items: []
 };
 
-// Coleção de Animes Isekai
 export const isekaiCollection: CollectionProps = {
   title: 'Isekais Favoritos',
   slug: 'isekai-favorites',
   description: 'Aventuras em mundos fantásticos e protagonistas transportados para realidades alternativas',
-  coverImage: 'https://cdn.myanimelist.net/images/anime/1530/117776l.jpg',
-  items: [
-    {
-      id: 21,
-      title: 'Re:Zero kara Hajimeru Isekai Seikatsu',
-      image: 'https://cdn.myanimelist.net/images/anime/1522/128039l.jpg',
-      score: 8.23,
-      year: 2016
-    },
-    {
-      id: 28891,
-      title: 'Mushoku Tensei: Isekai Ittara Honki Dasu',
-      image: 'https://cdn.myanimelist.net/images/anime/1530/117776l.jpg',
-      score: 8.62,
-      year: 2021
-    },
-    {
-      id: 31240,
-      title: 'Konosuba',
-      image: 'https://cdn.myanimelist.net/images/anime/8/77831l.jpg',
-      score: 8.12,
-      year: 2016
-    },
-    {
-      id: 52991,
-      title: 'Sousou no Frieren',
-      image: 'https://cdn.myanimelist.net/images/anime/1015/138006l.jpg',
-      score: 9.11,
-      year: 2023
-    },
-    {
-      id: 37991,
-      title: 'Tate no Yuusha no Nariagari',
-      image: 'https://cdn.myanimelist.net/images/anime/1245/121029l.jpg',
-      score: 8.01,
-      year: 2019
-    },
-    {
-      id: 30831,
-      title: 'Kono Subarashii Sekai ni Shukufuku wo!',
-      image: 'https://cdn.myanimelist.net/images/anime/8/77831l.jpg',
-      score: 8.12,
-      year: 2016
-    },
-    {
-      id: 5781,
-      title: 'Tengen Toppa Gurren Lagann',
-      image: 'https://cdn.myanimelist.net/images/anime/4/5123l.jpg',
-      score: 8.71,
-      year: 2007
-    },
-    {
-      id: 2001,
-      title: 'Tenkuu no Escaflowne',
-      image: 'https://cdn.myanimelist.net/images/anime/1214/105917l.jpg',
-      score: 7.84,
-      year: 1996
-    },
-    {
-      id: 41461,
-      title: 'Tensei shitara Slime Datta Ken',
-      image: 'https://cdn.myanimelist.net/images/anime/1038/93581l.jpg',
-      score: 8.17,
-      year: 2018
-    },
-    {
-      id: 35790,
-      title: 'No Game No Life',
-      image: 'https://cdn.myanimelist.net/images/anime/1074/111944l.jpg',
-      score: 8.12,
-      year: 2014
-    }
-  ]
+  coverImage: '',
+  items: []
 };
 
-// Todas as coleções
-export const allCollections = [
+// Initial empty collections array
+export let allCollections: CollectionProps[] = [
   romanceCollection,
   sliceOfLifeCollection,
   isekaiCollection
 ];
 
-export default allCollections; 
+// Romance anime IDs
+const romanceAnimeIds = [14813, 23273, 37999, 28851, 5081, 25397, 2167, 38000, 2966, 45726];
+
+// Slice of Life anime IDs
+const sliceOfLifeAnimeIds = [21922, 37450, 1210, 2167, 36038, 32901, 20583, 431, 11887, 47917];
+
+// Isekai anime IDs
+const isekaiAnimeIds = [31240, 28891, 31240, 52991, 37991, 30831, 5781, 2001, 41461, 35790];
+
+// Helper function to find highest rated anime in a collection
+const findHighestRatedAnime = (items: any[]) => {
+  if (items.length === 0) return null;
+  return items.reduce((prev, current) => {
+    return (prev.score || 0) > (current.score || 0) ? prev : current;
+  });
+};
+
+// Function to fetch anime data for a collection
+const fetchAnimeForCollection = async (
+  collection: CollectionProps, 
+  animeIds: number[]
+): Promise<CollectionProps> => {
+  try {
+    const animeItems = await Promise.all(animeIds.map(async (id) => {
+      try {
+        const response = await fetch(`https://api.jikan.moe/v4/anime/${id}`);
+        const data = await response.json();
+        const anime = data.data;
+
+        if (!anime) return null;
+
+        return {
+          id: anime.mal_id,
+          title: anime.title,
+          image: anime.images.jpg.image_url,
+          score: anime.score,
+          year: anime.year,
+          type: anime.type
+        };
+      } catch (error) {
+        console.error(`Failed to fetch anime with ID ${id}:`, error);
+        return null;
+      }
+    }));
+
+    // Filter out any failed requests
+    const validAnimeItems = animeItems.filter(item => item !== null);
+
+    // Get highest rated anime for the cover image
+    const highestRated = findHighestRatedAnime(validAnimeItems);
+    
+    // Return updated collection
+    return {
+      ...collection,
+      items: validAnimeItems,
+      coverImage: highestRated?.image || ''
+    };
+  } catch (error) {
+    console.error(`Failed to fetch anime for collection ${collection.title}:`, error);
+    return collection;
+  }
+};
+
+// Initialize collections with API data
+export const initializeCollections = async () => {
+  try {
+    // Fetch with delay between requests to avoid rate limiting
+    const updatedRomance = await fetchAnimeForCollection(romanceCollection, romanceAnimeIds);
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+    
+    const updatedSliceOfLife = await fetchAnimeForCollection(sliceOfLifeCollection, sliceOfLifeAnimeIds);
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+    
+    const updatedIsekai = await fetchAnimeForCollection(isekaiCollection, isekaiAnimeIds);
+    
+    allCollections = [updatedRomance, updatedSliceOfLife, updatedIsekai];
+    
+    return allCollections;
+  } catch (error) {
+    console.error('Failed to initialize collections:', error);
+    return allCollections;
+  }
+};
+
+export default allCollections;

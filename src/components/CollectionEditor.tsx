@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CollectionProps, CollectionItem } from './AnimeCollection';
-import { Search, X, Plus, Save, Trash, Upload, AlertCircle, ChevronLeft } from 'lucide-react';
+import { Search, X, Plus, Save, Trash, ChevronLeft } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useQuery } from '@tanstack/react-query';
 import { searchAnime } from '../lib/api';
@@ -25,10 +25,8 @@ const CollectionEditor: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const [coverImageError, setCoverImageError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   
   // Buscar dados existentes para edição
   useEffect(() => {
@@ -162,45 +160,18 @@ const CollectionEditor: React.FC = () => {
     setIsDraggingOver(false);
   };
   
-  // Upload de imagem de capa
-  const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Encontrar a imagem do anime com maior nota para usar como capa
+  const getHighestRatedAnimeCover = (items: CollectionItem[]): string => {
+    if (items.length === 0) return DEFAULT_COVER;
     
-    // Validar tamanho e tipo
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('A imagem deve ter menos de 2MB');
-      return;
-    }
+    // Ordenar por score (maior para menor) e pegar o primeiro
+    const sortedItems = [...items].sort((a, b) => {
+      const scoreA = a.score || 0;
+      const scoreB = b.score || 0;
+      return scoreB - scoreA;
+    });
     
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      toast.error('Formato inválido. Use JPEG, PNG ou WEBP');
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      setCoverPreview(result);
-      setCoverImageError(false);
-      
-      // Adicionar para o state principal quando usamos o arquivo
-      // Vamos testar a URL antes
-      const img = new Image();
-      img.onload = () => {
-        setCollection(prev => ({
-          ...prev,
-          coverImage: result
-        }));
-      };
-      img.onerror = () => {
-        setCoverImageError(true);
-        toast.error('Erro ao carregar imagem de capa');
-      };
-      img.src = result;
-    };
-    
-    reader.readAsDataURL(file);
+    return sortedItems[0].image;
   };
   
   // Validar e salvar a coleção
@@ -228,6 +199,12 @@ const CollectionEditor: React.FC = () => {
     setIsSaving(true);
     
     try {
+      // Atualizar a capa com a imagem do anime com maior nota
+      const updatedCollection = {
+        ...collection,
+        coverImage: getHighestRatedAnimeCover(collection.items)
+      };
+      
       // Buscar coleções existentes
       const savedCollections = localStorage.getItem('userCollections');
       let collections: CollectionProps[] = savedCollections 
@@ -237,18 +214,18 @@ const CollectionEditor: React.FC = () => {
       if (isEditMode) {
         // Atualizar coleção existente
         collections = collections.map(c => 
-          c.slug === slug ? collection : c
+          c.slug === slug ? updatedCollection : c
         );
         toast.success('Coleção atualizada com sucesso!');
       } else {
         // Verificar se já existe uma coleção com o mesmo slug
-        if (collections.some(c => c.slug === collection.slug)) {
+        if (collections.some(c => c.slug === updatedCollection.slug)) {
           // Gerar um slug único adicionando um timestamp
-          const uniqueSlug = `${collection.slug}-${Date.now()}`;
-          setCollection(prev => ({ ...prev, slug: uniqueSlug }));
-          collections.push({ ...collection, slug: uniqueSlug });
+          const uniqueSlug = `${updatedCollection.slug}-${Date.now()}`;
+          updatedCollection.slug = uniqueSlug;
+          collections.push(updatedCollection);
         } else {
-          collections.push(collection);
+          collections.push(updatedCollection);
         }
         toast.success('Coleção criada com sucesso!');
       }
@@ -258,7 +235,7 @@ const CollectionEditor: React.FC = () => {
       
       // Redirecionar após salvar
       setTimeout(() => {
-        navigate(`/collection/${isEditMode ? slug : collection.slug}`);
+        navigate(`/collection/${isEditMode ? slug : updatedCollection.slug}`);
       }, 1500);
     } catch (error) {
       console.error('Erro ao salvar coleção:', error);
@@ -366,38 +343,33 @@ const CollectionEditor: React.FC = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <p className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Imagem de Capa
-            </label>
-            <div className="mt-1 flex flex-col items-center justify-center">
-              <div className="w-full aspect-video relative overflow-hidden rounded-lg">
-                <img 
-                  src={coverPreview || collection.coverImage}
-                  alt="Capa da coleção" 
-                  className="w-full h-full object-cover"
-                  onError={() => setCoverImageError(true)}
-                />
-                {coverImageError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                    <AlertCircle className="w-8 h-8 text-gray-400" />
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              A imagem de capa será automaticamente definida como a do anime com maior pontuação na sua coleção.
+            </p>
+            {collection.items.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-16 rounded overflow-hidden shrink-0">
+                    <img 
+                      src={getHighestRatedAnimeCover(collection.items)}
+                      alt="Capa" 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {collection.items.sort((a, b) => (b.score || 0) - (a.score || 0))[0]?.title}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Score: {collection.items.sort((a, b) => (b.score || 0) - (a.score || 0))[0]?.score || 'N/A'}
+                    </p>
+                  </div>
+                </div>
               </div>
-              
-              <label className="mt-4 cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700">
-                <Upload className="w-4 h-4 mr-2" />
-                Carregar imagem de capa
-                <input
-                  type="file"
-                  className="sr-only"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleCoverImageUpload}
-                />
-              </label>
-              <p className="text-xs text-gray-500 mt-2">
-                Recomendado: 1280×720px. Máximo: 2MB.
-              </p>
-            </div>
+            )}
           </div>
         </div>
         
@@ -410,7 +382,7 @@ const CollectionEditor: React.FC = () => {
             
             {errors.items && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4 flex items-center text-red-800 dark:text-red-400">
-                <AlertCircle className="w-5 h-5 mr-2" />
+                <Search className="w-5 h-5 mr-2" />
                 {errors.items}
               </div>
             )}
@@ -546,4 +518,4 @@ const CollectionEditor: React.FC = () => {
   );
 };
 
-export default CollectionEditor; 
+export default CollectionEditor;
